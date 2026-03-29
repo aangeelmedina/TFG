@@ -19,23 +19,24 @@ app.config['SESSION_COOKIE_HTTPONLY'] = True
 
 db = SQLAlchemy(app)
 
-# --- MODELO USUARIO ---
+
+# ─────────────────────────────────────────────
+# USUARIO
+# ─────────────────────────────────────────────
 class Usuario(db.Model):
     __tablename__ = 'usuarios'
-    id           = db.Column(db.Integer, primary_key=True)
-    username     = db.Column(db.String(100), unique=True)
-    contrasena   = db.Column(db.String(256))
-    rol          = db.Column(db.String(50), nullable=True)
+    id         = db.Column(db.Integer, primary_key=True)
+    username   = db.Column(db.String(100), unique=True)
+    contrasena = db.Column(db.String(256))
+    rol        = db.Column(db.String(50), nullable=True)
 
 
-# Tabla intermedia nodos ↔ pacientes
-nodos_pacientes = db.Table('nodos_pacientes',
-    db.Column('nodo_id',     db.Integer, db.ForeignKey('nodos.id'),    primary_key=True),
-    db.Column('paciente_id', db.Integer, db.ForeignKey('pacientes.id'), primary_key=True)
-)
-
-
-# --- MODELO NODO ---
+# ─────────────────────────────────────────────
+# NODO
+# Ahora los nodos pertenecen a un ArbolDecision
+# (arbol_id) en vez de estar sueltos.
+# La raíz de cada árbol tiene padre_id = None.
+# ─────────────────────────────────────────────
 class Nodo(db.Model):
     __tablename__ = 'nodos'
 
@@ -44,10 +45,17 @@ class Nodo(db.Model):
     img      = db.Column(db.String(200), nullable=True)
     es_final = db.Column(db.Boolean, default=False)
 
+    # Jerarquía padre → hijos
     padre_id = db.Column(db.Integer, db.ForeignKey('nodos.id'), nullable=True)
-    hijos    = db.relationship('Nodo',
-                               backref=db.backref('padre', remote_side=[id]),
-                               lazy=True)
+    hijos    = db.relationship(
+        'Nodo',
+        backref=db.backref('padre', remote_side='Nodo.id'),
+        lazy=True,
+        cascade='all, delete-orphan',   # borrar padre borra hijos
+    )
+
+    # Árbol al que pertenece este nodo
+    arbol_id = db.Column(db.Integer, db.ForeignKey('arboles_decision.id'), nullable=True)
 
     def __repr__(self):
         return f'<Nodo {self.id}: {self.texto}>'
@@ -55,8 +63,68 @@ class Nodo(db.Model):
     def puede_tener_hijos(self):
         return len(self.hijos) < 2
 
+    def to_dict(self, recurse: bool = True) -> dict:
+        data = {
+            'id':       self.id,
+            'texto':    self.texto,
+            'img':      self.img,
+            'es_final': self.es_final,
+            'padre_id': self.padre_id,
+            'arbol_id': self.arbol_id,
+            'hijos':    [],
+        }
+        if recurse:
+            data['hijos'] = [h.to_dict() for h in self.hijos]
+        return data
 
-# --- MODELO CENTRO ---
+
+# ─────────────────────────────────────────────
+# ÁRBOL DE DECISIÓN
+# Cada árbol pertenece a un paciente y tiene
+# exactamente un nodo raíz (padre_id = None).
+# ─────────────────────────────────────────────
+class ArbolDecision(db.Model):
+    __tablename__ = 'arboles_decision'
+
+    id          = db.Column(db.Integer, primary_key=True)
+    titulo      = db.Column(db.String(200), nullable=False, default='Árbol sin título')
+    paciente_id = db.Column(db.Integer, db.ForeignKey('pacientes.id'), nullable=False)
+    creado_en   = db.Column(db.DateTime, server_default=db.func.now())
+
+    # Relación con todos los nodos de este árbol
+    nodos = db.relationship(
+        'Nodo',
+        backref=db.backref('arbol', lazy=True),
+        lazy=True,
+        cascade='all, delete-orphan',   # borrar árbol borra todos sus nodos
+        foreign_keys='Nodo.arbol_id',
+    )
+
+    @property
+    def raiz(self):
+        """Devuelve el nodo raíz (padre_id = None) de este árbol."""
+        return next((n for n in self.nodos if n.padre_id is None), None)
+
+    def to_dict(self, include_tree: bool = False) -> dict:
+        data = {
+            'id':          self.id,
+            'titulo':      self.titulo,
+            'paciente_id': self.paciente_id,
+            'creado_en':   self.creado_en.isoformat() if self.creado_en else None,
+            'num_nodos':   len(self.nodos),
+        }
+        if include_tree:
+            raiz = self.raiz
+            data['raiz'] = raiz.to_dict() if raiz else None
+        return data
+
+    def __repr__(self):
+        return f'<ArbolDecision {self.id}: {self.titulo} (paciente {self.paciente_id})>'
+
+
+# ─────────────────────────────────────────────
+# CENTRO
+# ─────────────────────────────────────────────
 class Centro(db.Model):
     __tablename__ = 'centros'
     id        = db.Column(db.Integer, primary_key=True)
@@ -66,7 +134,12 @@ class Centro(db.Model):
     email     = db.Column(db.String(100), nullable=False)
 
 
-# --- MODELO PACIENTE (ampliado) ---
+# ─────────────────────────────────────────────
+# PACIENTE
+# La relación nodos_pacientes anterior ya no es
+# necesaria: los nodos se acceden a través de
+# ArbolDecision. Se elimina para evitar confusión.
+# ─────────────────────────────────────────────
 class Paciente(db.Model):
     __tablename__ = 'pacientes'
 
@@ -81,34 +154,40 @@ class Paciente(db.Model):
     fecha_ingreso    = db.Column(db.Date,         nullable=True)
     centro_id        = db.Column(db.Integer,      db.ForeignKey('centros.id'), nullable=False)
 
-    centro = db.relationship('Centro', backref=db.backref('pacientes', lazy=True))
+    centro  = db.relationship('Centro', backref=db.backref('pacientes', lazy=True))
 
-    nodos = db.relationship('Nodo',
-                            secondary=nodos_pacientes,
-                            lazy='subquery',
-                            backref=db.backref('pacientes', lazy=True))
+    # Un paciente puede tener varios árboles de decisión
+    arboles = db.relationship(
+        'ArbolDecision',
+        backref=db.backref('paciente', lazy=True),
+        lazy=True,
+        cascade='all, delete-orphan',
+    )
 
     def to_dict(self):
         return {
-            "id":               self.id,
-            "nombre":           self.nombre,
-            "apellidos":        self.apellidos,
-            "dni":              self.dni,
-            "edad":             self.edad,
-            "contacto":         self.contacto,
-            "historial_medico": self.historial_medico,
-            "estado":           self.estado,
-            "fecha_ingreso":    self.fecha_ingreso.isoformat() if self.fecha_ingreso else None,
-            "centro_id":        self.centro_id,
+            'id':               self.id,
+            'nombre':           self.nombre,
+            'apellidos':        self.apellidos,
+            'dni':              self.dni,
+            'edad':             self.edad,
+            'contacto':         self.contacto,
+            'historial_medico': self.historial_medico,
+            'estado':           self.estado,
+            'fecha_ingreso':    self.fecha_ingreso.isoformat() if self.fecha_ingreso else None,
+            'centro_id':        self.centro_id,
+            'num_arboles':      len(self.arboles),
         }
 
 
-# --- MODELO CENTRO-USUARIO ---
+# ─────────────────────────────────────────────
+# CENTRO-USUARIO
+# ─────────────────────────────────────────────
 class CentroUsuario(db.Model):
     __tablename__ = 'centro_usuarios'
     id         = db.Column(db.Integer, primary_key=True)
-    centro_id  = db.Column(db.Integer, db.ForeignKey('centros.id'),   nullable=False)
-    usuario_id = db.Column(db.Integer, db.ForeignKey('usuarios.id'),  nullable=False)
+    centro_id  = db.Column(db.Integer, db.ForeignKey('centros.id'),  nullable=False)
+    usuario_id = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
     rol        = db.Column(db.String(50), nullable=False)
 
     centro  = db.relationship('Centro',  backref=db.backref('centro_usuarios', lazy=True))

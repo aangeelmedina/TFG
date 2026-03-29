@@ -1,4 +1,4 @@
-import type { AuthResponse, Centro, CreateCentroDTO, MessageResponse, User } from "../types";
+import type { Arbol, AuthResponse, Centro, CreateCentroDTO, MessageResponse, Nodo, User } from "../types";
 
 
 
@@ -127,5 +127,65 @@ export const authAPI = {
         throw new Error("Error al obtener información del usuario");
         }
         return response.json();
+    },
+};
+
+// ========================================
+// Nodos, árboles, pacientes... (NODES, TREES, PATIENTS...)
+// ========================================
+
+async function apiFetch<T>(
+  url: string,
+  opts: RequestInit = {}
+): Promise<{ data?: T; error?: string }> {
+  try {
+    const res = await fetch(url, {
+      headers: { "Content-Type": "application/json" },
+      ...opts,
+    });
+    const json = await res.json();
+    if (!res.ok) return { error: json.error ?? `HTTP ${res.status}` };
+    return { data: json as T };
+  } catch (e) {
+    return { error: (e as Error).message };
+  }
+}
+
+const API = import.meta.env.VITE_API_URL;
+
+export const api = {
+    arboles: {
+        list:   (pid: number) => apiFetch<Arbol[]>(`${API}/api/pacientes/${pid}/arboles`),
+        get:    (pid: number, aid: number) => apiFetch<Arbol>(`${API}/api/pacientes/${pid}/arboles/${aid}`),
+        create: (pid: number, titulo: string) =>
+        apiFetch<Arbol>(`${API}/api/pacientes/${pid}/arboles`, {
+            method: "POST",
+            body: JSON.stringify({ titulo }),
+        }),
+        rename: (pid: number, aid: number, titulo: string) =>
+        apiFetch<Arbol>(`${API}/pacientes/${pid}/arboles/${aid}`, {
+            method: "PATCH",
+            body: JSON.stringify({ titulo }),
+        }),
+        delete: (pid: number, aid: number) =>
+        apiFetch<{ eliminado: number }>(`${API}/api/pacientes/${pid}/arboles/${aid}`, {
+            method: "DELETE",
+        }),
+    },
+    nodos: {
+        create: (pid: number, aid: number, padre_id: number, texto: string, es_final: boolean) =>
+        apiFetch<Nodo>(`${API}/api/pacientes/${pid}/arboles/${aid}/nodos`, {
+            method: "POST",
+            body: JSON.stringify({ padre_id, texto, es_final }),
+        }),
+        edit: (pid: number, aid: number, nid: number, fields: Partial<Pick<Nodo, "texto" | "es_final">>) =>
+        apiFetch<Nodo>(`${API}/api/pacientes/${pid}/arboles/${aid}/nodos/${nid}`, {
+            method: "PATCH",
+            body: JSON.stringify(fields),
+        }),
+        delete: (pid: number, aid: number, nid: number) =>
+        apiFetch<{ eliminado: number }>(`${API}/api/pacientes/${pid}/arboles/${aid}/nodos/${nid}`, {
+            method: "DELETE",
+        }),
     },
 };

@@ -760,3 +760,13 @@ body {
 
   .action-buttons { gap: 4px; }
 }
+.modal--fullscreen {
+  width: 100vw;
+  height: 100vh;
+  max-width: 100vw;
+  max-height: 100vh;
+  margin: 0;
+  border-radius: 0;
+  overflow-y: auto;
+  padding: 0;
+}

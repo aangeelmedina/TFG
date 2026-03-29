@@ -85,3 +85,31 @@ export const FORM_VACIO: PacienteForm = {
     estado: "En tratamiento",
     fecha_ingreso: "",
 };
+
+export interface Nodo {
+  id: number;
+  texto: string;
+  img: string | null;
+  es_final: boolean;
+  padre_id: number | null;
+  arbol_id: number;
+  hijos: Nodo[];
+}
+
+export interface Arbol {
+  id: number;
+  titulo: string;
+  paciente_id: number;
+  creado_en: string | null;
+  num_nodos: number;
+  raiz?: Nodo | null;
+}
+
+export interface Paciente {
+  id: number;
+  nombre: string;
+  apellidos: string;
+}
+
+// ─── Toast ────────────────────────────────────────────────
+export type ToastState = { msg: string; type: "ok" | "err" } | null;
