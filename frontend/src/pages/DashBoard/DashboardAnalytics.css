@@ -1,0 +1,78 @@
+/* DashboardAnalytics.css */
+@reference "tailwindcss";
+
+.dashboard-layout {
+  @apply min-h-screen bg-slate-50 p-6 md:p-8 font-sans text-slate-800;
+}
+
+.dashboard-header {
+  @apply mb-8;
+}
+
+.dashboard-title {
+  @apply text-3xl font-bold tracking-tight text-slate-900;
+}
+
+.dashboard-subtitle {
+  @apply text-slate-500 mt-2;
+}
+
+/* Kpi Cards */
+.kpi-grid {
+  @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8;
+}
+
+.kpi-card {
+  @apply bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between transition-shadow hover:shadow-md;
+}
+
+.kpi-content h4 {
+  @apply text-sm font-semibold text-slate-500 uppercase tracking-wider mb-1;
+}
+
+.kpi-content .kpi-value {
+  @apply text-3xl font-bold text-slate-800;
+}
+
+.kpi-icon {
+  @apply p-4 rounded-xl flex items-center justify-center;
+}
+
+.icon-blue { @apply bg-blue-50 text-blue-600; }
+.icon-emerald { @apply bg-emerald-50 text-emerald-600; }
+.icon-purple { @apply bg-purple-50 text-purple-600; }
+.icon-orange { @apply bg-orange-50 text-orange-600; }
+
+/* Charts Area */
+.charts-grid {
+  @apply grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8;
+}
+
+.chart-card {
+  @apply bg-white p-6 rounded-2xl shadow-sm border border-slate-200 h-[400px] flex flex-col;
+}
+
+.chart-header {
+  @apply mb-6;
+}
+
+.chart-title {
+  @apply text-lg font-bold text-slate-800;
+}
+
+.chart-wrapper {
+  @apply flex-1 w-full h-full min-h-[250px];
+}
+
+/* Recent Activity Mini-table */
+.recent-section {
+  @apply bg-white rounded-2xl shadow-sm border border-slate-200 p-6;
+}
+
+.recent-list {
+  @apply mt-4 divide-y divide-slate-100;
+}
+
+.recent-item {
+  @apply py-4 flex justify-between items-center;
+}

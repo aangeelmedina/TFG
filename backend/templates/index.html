@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Árbol de Decisiones</title>
+    <style>
+        /* --- ESTILOS PARA EL ÁRBOL (CSS Tree) --- */
+        body { font-family: sans-serif; background-color: #f4f4f9; padding: 20px; }
+        .tree-container { overflow-x: auto; text-align: center; }
+        
+        /* Esto hace la magia de las líneas conectoras usando listas ul/li */
+        .tree ul {
+            padding-top: 20px; position: relative;
+            transition: all 0.5s; -webkit-transition: all 0.5s; -moz-transition: all 0.5s;
+        }
+        .tree li {
+            float: left; text-align: center;
+            list-style-type: none; position: relative;
+            padding: 20px 5px 0 5px;
+            transition: all 0.5s; -webkit-transition: all 0.5s; -moz-transition: all 0.5s;
+        }
+        /* Líneas verticales y horizontales */
+        .tree li::before, .tree li::after{
+            content: ''; position: absolute; top: 0; right: 50%;
+            border-top: 2px solid #ccc; width: 50%; height: 20px;
+        }
+        .tree li::after{ right: auto; left: 50%; border-left: 2px solid #ccc; }
+        .tree li:only-child::after, .tree li:only-child::before { display: none; }
+        .tree li:only-child{ padding-top: 0;}
+        .tree li:first-child::before, .tree li:last-child::after{ border: 0 none; }
+        .tree li:last-child::before{ border-right: 2px solid #ccc; border-radius: 0 5px 0 0; }
+        .tree li:first-child::after{ border-radius: 5px 0 0 0; }
+        .tree ul ul::before{
+            content: ''; position: absolute; top: 0; left: 50%;
+            border-left: 2px solid #ccc; width: 0; height: 20px;
+        }
+
+        /* ESTILO DE LA CAJA DEL NODO */
+        .nodo-box {
+            border: 2px solid #333;
+            padding: 15px;
+            text-decoration: none;
+            color: #333;
+            font-family: arial, verdana, tahoma;
+            font-size: 16px;
+            display: inline-block;
+            background: white;
+            border-radius: 5px;
+            min-width: 120px;
+            position: relative; /* Para posicionar el botón + */
+        }
+        
+        /* Estilo diferente para nodos finales */
+        .nodo-final { background-color: #d4edda; border-color: #28a745; }
+
+        /* BOTÓN + */
+        .btn-add {
+            position: absolute;
+            bottom: -15px; /* Lo colocamos justo debajo de la caja */
+            left: 50%;
+            transform: translateX(-50%);
+            background: #007bff;
+            color: white;
+            border: none;
+            width: 30px; height: 30px;
+            font-size: 20px; font-weight: bold;
+            cursor: pointer; display: block;
+            border-radius: 4px;
+        }
+        .btn-add:hover { background-color: #0056b3; }
+
+        /* --- ESTILOS PARA EL FORMULARIO MODAL (Ventana emergente) --- */
+        .modal {
+            display: none; /* Oculto por defecto */
+            position: fixed; z-index: 1000; left: 0; top: 0;
+            width: 100%; height: 100%; overflow: auto;
+            background-color: rgba(0,0,0,0.5); /* Fondo oscuro semitransparente */
+        }
+        .modal-content {
+            background-color: #fefefe; margin: 15% auto; padding: 25px;
+            border: 1px solid #888; width: 400px; border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .close { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
+        .close:hover { color: black; }
+        .form-group { margin-bottom: 15px; text-align: left;}
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold;}
+        .form-group input[type="text"] { width: 100%; padding: 8px; box-sizing: border-box;}
+        .btn-submit { background-color: #28a745; color: white; padding: 10px 20px; border: none; cursor: pointer; width: 100%; font-size: 16px;}
+    </style>
+</head>
+<body>
+
+    <h1>Panel de Administración del Árbol</h1>
+    <p>Usa el botón [+] para añadir opciones. Recuerda: máximo 2 hijos por nodo.</p>
+
+    {% macro render_tree(nodo) %}
+        <li>
+            <div class="nodo-box {% if nodo.es_final %}nodo-final{% endif %}">
+                <strong>{{ nodo.texto }}</strong>
+                {% if nodo.es_final %}<br><small>(Mensaje Final)</small>{% endif %}
+                
+                {% if nodo.hijos|length < 2 and not nodo.es_final %}
+                    <button class="btn-add" onclick="abrirModal({{ nodo.id }})">+</button>
+                {% endif %}
+            </div>
+            
+            {% if nodo.hijos|length > 0 %}
+                <ul>
+                    {% for hijo in nodo.hijos %}
+                        {{ render_tree(hijo) }}
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </li>
+    {% endmacro %}
+
+
+    <div class="tree-container">
+        <div class="tree">
+            <ul>
+                {% if raiz %}
+                    {{ render_tree(raiz) }}
+                {% else %}
+                    <div class="nodo-box">
+                        Error: No existe el nodo RAÍZ. Ejecuta el backend para crearlo.
+                    </div>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+
+
+    <div id="miModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="cerrarModal()">&times;</span>
+            <h2>Añadir nueva opción</h2>
+            
+            <form id="formNuevoNodo" method="POST" action="">
+                <div class="form-group">
+                    <label for="texto">Texto de la opción (o mensaje final):</label>
+                    <input type="text" id="texto" name="texto" required placeholder="Ej: Tengo hambre">
+                </div>
+                
+                <div class="form-group" style="text-align: left;">
+                    <label>
+                        <input type="checkbox" name="es_final">
+                        ¿Es esto un mensaje final (nodo hoja)?
+                    </label>
+                    <small style="color: #666;">Si marcas esto, este nodo no podrá tener hijos.</small>
+                </div>
+                <br>
+                <button type="submit" class="btn-submit">Guardar Nodo</button>
+            </form>
+        </div>
+    </div>
+
+
+    <script>
+        // Función que se llama al pulsar el botón [+]
+        function abrirModal(idPadre) {
+            const modal = document.getElementById('miModal');
+            const form = document.getElementById('formNuevoNodo');
+            
+            // 1. Mostramos el modal
+            modal.style.display = "block";
+            
+            // 2. ¡IMPORTANTE! Actualizamos la URL a la que enviará el formulario
+            // para que incluya el ID del padre correcto.
+            form.action = "/crear_nodo/" + idPadre;
+            
+            // Ponemos el foco en el input de texto para empezar a escribir rápido
+            document.getElementById('texto').focus();
+        }
+
+        // Función para cerrar el modal
+        function cerrarModal() {
+            document.getElementById('miModal').style.display = "none";
+            // Limpiamos el formulario por si acaso
+            document.getElementById('formNuevoNodo').reset();
+        }
+
+        // Cerrar si se hace click fuera de la caja del modal
+        window.onclick = function(event) {
+            const modal = document.getElementById('miModal');
+            if (event.target == modal) {
+                cerrarModal();
+            }
+        }
+    </script>
+
+</body>
+</html>

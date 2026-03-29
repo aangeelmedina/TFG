@@ -1,0 +1,60 @@
+/* ─────────────────────────────────────────────
+   CentroList.css
+───────────────────────────────────────────── */
+
+.cl-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.25rem;
+  width: 100%;
+  animation: cl-fadeIn 250ms ease;
+}
+
+@keyframes cl-fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Estado vacío / error / carga */
+.cl-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 4rem 2rem;
+  color: var(--text-muted, #9a9a9a);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  text-align: center;
+  -webkit-font-smoothing: antialiased;
+}
+
+.cl-state--error {
+  color: #dc2626;
+  flex-direction: row;
+  padding: 1.5rem;
+  background: #fee2e2;
+  border: 1px solid #fecaca;
+  border-radius: var(--radius, 10px);
+  font-size: 13.5px;
+}
+
+/* Spinner para carga */
+.cl-spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--border, #e4e4e4);
+  border-top-color: var(--text-secondary, #6b6b6b);
+  border-radius: 50%;
+  animation: cl-spin 0.7s linear infinite;
+}
+
+@keyframes cl-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 480px) {
+  .cl-grid { grid-template-columns: 1fr; }
+}

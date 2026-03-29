@@ -1,0 +1,36 @@
+@import 'tailwindcss';
+
+/* AÑADE ESTO DEBAJO */
+@layer components {
+  
+  .login-container {
+    @apply flex min-h-screen w-full items-center justify-center bg-gray-100;
+  }
+
+  .login-card {
+    @apply w-full max-w-md rounded-xl bg-white p-8 shadow-2xl transition-all duration-300;
+  }
+
+  .login-title {
+    @apply mb-6 text-center text-3xl font-bold text-gray-800;
+  }
+
+  .login-label {
+    @apply mb-2 block text-sm font-semibold text-gray-600;
+  }
+
+  .login-input {
+    @apply w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-700 
+    placeholder-gray-400 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200;
+  }
+
+  .login-button {
+    @apply mt-4 w-full rounded-lg bg-blue-600 px-4 py-3 font-bold text-white 
+    shadow-lg transition-colors hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300
+    disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .error-message {
+    @apply mb-4 rounded-lg bg-red-100 p-3 text-center text-sm text-red-700 border border-red-400;
+  }
+}

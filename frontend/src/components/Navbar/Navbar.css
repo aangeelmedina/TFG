@@ -1,0 +1,389 @@
+/* ─────────────────────────────────────────────
+   Navbar.css
+   Mismo sistema de variables que CentroAdminPage
+   Corporativo neutro · grises · minimalista
+───────────────────────────────────────────── */
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+/* ── Variables (mismas que CentroAdminPage) ── */
+/* Si ya las tienes en un :root global, elimina este bloque */
+:root {
+  --bg:             #f5f5f4;
+  --surface:        #ffffff;
+  --surface-2:      #fafafa;
+  --border:         #e4e4e4;
+  --border-2:       #d1d1d1;
+
+  --text-primary:   #1a1a1a;
+  --text-secondary: #6b6b6b;
+  --text-muted:     #9a9a9a;
+
+  --accent:         #2563eb;
+  --accent-light:   #eff6ff;
+  --accent-hover:   #1d4ed8;
+
+  --radius-sm: 6px;
+  --radius:    10px;
+  --radius-lg: 14px;
+
+  --shadow-sm: 0 1px 3px rgba(0,0,0,.06);
+  --shadow:    0 4px 16px rgba(0,0,0,.08);
+
+  --transition: 150ms ease;
+}
+
+/* ── Navbar ──────────────────────────────────── */
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0 2rem;
+  height: 56px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  font-family: 'DM Sans', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Brand */
+.navbar__brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.navbar__brand-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text-primary);
+  flex-shrink: 0;
+}
+
+/* Actions group */
+.navbar__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* User chip */
+.navbar__user {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 4px;
+}
+
+.navbar__user-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
+}
+
+.navbar__role {
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 20px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.navbar__role--super {
+  background: var(--text-primary);
+  color: #fff;
+}
+
+.navbar__role--admin {
+  background: #1a1a1a;
+  color: #fff;
+}
+
+.navbar__role--tutor {
+  background: var(--accent-light);
+  color: var(--accent);
+}
+
+/* Divider between user chip and buttons */
+.navbar__actions::before {
+  display: none; /* se activa solo si hay user */
+}
+
+/* Navbar buttons */
+.navbar__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  font-family: 'DM Sans', inherit;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  border: 1px solid transparent;
+  white-space: nowrap;
+  transition: background var(--transition), color var(--transition),
+              border-color var(--transition), opacity var(--transition),
+              transform var(--transition);
+}
+.navbar__btn:active { transform: scale(0.97); }
+
+/* Primary — crear centro */
+.navbar__btn--primary {
+  background: var(--text-primary);
+  color: #ffffff;
+  border-color: var(--text-primary);
+}
+.navbar__btn--primary:hover {
+  opacity: 0.82;
+}
+
+/* Ghost — cerrar sesión */
+.navbar__btn--ghost {
+  background: transparent;
+  color: var(--text-secondary);
+  border-color: var(--border);
+}
+.navbar__btn--ghost:hover {
+  background: var(--bg);
+  border-color: var(--border-2);
+  color: var(--text-primary);
+}
+
+/* Separator visual entre user y botones */
+.navbar__user + .navbar__btn--primary,
+.navbar__user + .navbar__btn--ghost {
+  margin-left: 6px;
+}
+
+/* ── Modal overlay ───────────────────────────── */
+.nb-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, .35);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  padding: 1rem;
+  animation: nb-overlayIn 150ms ease;
+}
+
+@keyframes nb-overlayIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ── Modal box ───────────────────────────────── */
+.nb-modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  width: 100%;
+  max-width: 480px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, .14);
+  animation: nb-modalIn 180ms ease;
+  font-family: 'DM Sans', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+@keyframes nb-modalIn {
+  from { opacity: 0; transform: scale(0.96) translateY(10px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* Header */
+.nb-modal__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.nb-modal__title {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+
+.nb-modal__sub {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  margin-top: 3px;
+  font-weight: 400;
+}
+
+.nb-modal__close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--text-muted);
+  padding: 4px 6px;
+  border-radius: var(--radius-sm);
+  line-height: 1;
+  flex-shrink: 0;
+  transition: background var(--transition), color var(--transition);
+}
+.nb-modal__close:hover:not(:disabled) {
+  background: var(--bg);
+  color: var(--text-primary);
+}
+.nb-modal__close:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* Form */
+.nb-modal__form {
+  padding: 1.25rem 1.5rem 1.5rem;
+}
+
+.nb-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.nb-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+/* Full-width: dirección ocupa toda la fila */
+.nb-field:nth-child(2) {
+  grid-column: 1 / -1;
+}
+
+.nb-label {
+  font-size: 11.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+}
+
+.nb-input {
+  padding: 9px 12px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-family: 'DM Sans', inherit;
+  font-size: 13.5px;
+  color: var(--text-primary);
+  outline: none;
+  width: 100%;
+  transition: border-color var(--transition), box-shadow var(--transition),
+              background var(--transition);
+}
+.nb-input::placeholder { color: var(--text-muted); }
+.nb-input:focus {
+  background: var(--surface);
+  border-color: var(--border-2);
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, .04);
+}
+
+/* Footer */
+.nb-modal__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+/* Buttons inside modal */
+.nb-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  font-family: 'DM Sans', inherit;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background var(--transition), color var(--transition),
+              border-color var(--transition), opacity var(--transition),
+              transform var(--transition);
+}
+.nb-btn:active:not(:disabled) { transform: scale(0.97); }
+.nb-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.nb-btn--cancel {
+  background: transparent;
+  color: var(--text-secondary);
+  border-color: var(--border);
+}
+.nb-btn--cancel:hover:not(:disabled) {
+  background: var(--bg);
+  border-color: var(--border-2);
+  color: var(--text-primary);
+}
+
+.nb-btn--save {
+  background: var(--text-primary);
+  color: #ffffff;
+  border-color: var(--text-primary);
+}
+.nb-btn--save:hover:not(:disabled) {
+  opacity: 0.82;
+}
+
+/* Spinner */
+.nb-spinner {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(255, 255, 255, .35);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: nb-spin 0.6s linear infinite;
+}
+
+@keyframes nb-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Responsive ──────────────────────────────── */
+@media (max-width: 700px) {
+  .navbar { padding: 0 1rem; }
+  .navbar__user-name { display: none; }
+
+  .nb-form-grid {
+    grid-template-columns: 1fr;
+  }
+  .nb-field:nth-child(2) {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .navbar__btn span,
+  .navbar__btn svg + * { }
+  
+  /* Ocultar texto "Crear Centro" en móvil muy pequeño, dejar solo icono */
+  .navbar__btn--primary .btn-text { display: none; }
+}

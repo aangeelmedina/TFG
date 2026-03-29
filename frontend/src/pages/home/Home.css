@@ -1,0 +1,39 @@
+/* ─────────────────────────────────────────────
+   Home.css
+───────────────────────────────────────────── */
+
+.home-container {
+  max-width: 1280px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 2rem 2rem 4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  font-family: 'DM Sans', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.home-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.home-heading__title {
+  font-size: clamp(18px, 2.5vw, 22px);
+  font-weight: 600;
+  letter-spacing: -0.4px;
+  color: var(--text-primary, #1a1a1a);
+  line-height: 1.2;
+}
+
+.home-heading__sub {
+  font-size: 13px;
+  color: var(--text-muted, #9a9a9a);
+  font-weight: 400;
+}
+
+@media (max-width: 640px) {
+  .home-container { padding: 1.25rem 1rem 3rem; }
+}

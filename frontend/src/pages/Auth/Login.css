@@ -1,0 +1,27 @@
+/* Login.css */
+.login-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg, #f5f5f4);
+    font-family: 'DM Sans', sans-serif;
+}
+
+.login-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.login-loading__spinner {
+    display: inline-block;
+    width: 28px;
+    height: 28px;
+    border: 2.5px solid var(--border, #e4e4e4);
+    border-top-color: var(--text-secondary, #6b6b6b);
+    border-radius: 50%;
+    animation: login-spin 0.7s linear infinite;
+}
+
+@keyframes login-spin { to { transform: rotate(360deg); } }
