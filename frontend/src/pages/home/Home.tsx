@@ -1,4 +1,4 @@
-import CentroList from "../../components/CentrosList/CentroList";
+import CentroList from "../../components/Centros/CentrosList/CentroList";
 import "./Home.css";
 
 const Home = () => {

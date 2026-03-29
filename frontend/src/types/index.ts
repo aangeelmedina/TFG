@@ -43,3 +43,45 @@ export interface AuthResponse {
 export interface MessageResponse {
     message: string;
 }
+
+export type EstadoPaciente =
+    | "En tratamiento"
+    | "Alta médica"
+    | "Pendiente evaluación"
+    | "Baja temporal";
+
+export interface Paciente {
+    id: number;
+    nombre: string;
+    apellidos: string;
+    dni: string;
+    edad: number;
+    estado: EstadoPaciente;
+    fecha_ingreso: string | null;
+    contacto: string | null;
+    historial_medico: string | null;
+    centro_id: number;
+}
+
+export type PacienteForm = Omit<Paciente, "id" | "centro_id">;
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+
+export const ESTADO_OPCIONES: EstadoPaciente[] = [
+  "En tratamiento",
+  "Alta médica",
+  "Pendiente evaluación",
+  "Baja temporal",
+];
+
+export const FORM_VACIO: PacienteForm = {
+    nombre: "",
+    apellidos: "",
+    dni: "",
+    edad: 0,
+    contacto: "",
+    historial_medico: "",
+    estado: "En tratamiento",
+    fecha_ingreso: "",
+};

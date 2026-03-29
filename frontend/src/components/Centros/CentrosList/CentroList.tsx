@@ -2,8 +2,8 @@ import CentrosCard from "../CentrosCard/CentrosCard";
 import "./CentroList.css";
 
 import { use } from "react";
-import { CentrosContext } from "../../context/CentrosContext";
-import { AuthContext } from "../../context/AuthContext";
+import { CentrosContext } from "../../../context/CentrosContext";
+import { AuthContext } from "../../../context/AuthContext";
 
 const CentroList = () => {
     const centrosContext = use(CentrosContext);
