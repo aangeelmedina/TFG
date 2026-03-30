@@ -87,29 +87,50 @@ export const FORM_VACIO: PacienteForm = {
 };
 
 export interface Nodo {
-  id: number;
-  texto: string;
-  img: string | null;
-  es_final: boolean;
-  padre_id: number | null;
-  arbol_id: number;
-  hijos: Nodo[];
+    id: number;
+    texto: string;
+    img: string | null;
+    es_final: boolean;
+    padre_id: number | null;
+    arbol_id: number;
+    hijos: Nodo[];
 }
 
 export interface Arbol {
-  id: number;
-  titulo: string;
-  paciente_id: number;
-  creado_en: string | null;
-  num_nodos: number;
-  raiz?: Nodo | null;
+    id: number;
+    titulo: string;
+    paciente_id: number;
+    creado_en: string | null;
+    num_nodos: number;
+    raiz?: Nodo | null;
 }
 
 export interface Paciente {
-  id: number;
-  nombre: string;
-  apellidos: string;
+    id: number;
+    nombre: string;
+    apellidos: string;
 }
+
+export interface NodoPaciente {
+    id: number;
+    nombre: string;
+    apellidos: string;
+}
+
+// Nodo simplificado que devuelve /jugar
+export interface NodoJuego {
+    id: number;
+    texto: string;
+    es_final: boolean;
+    nivel: number;
+    num_hijos: number;
+    hijos: { id: number; texto: string; es_final: boolean }[];
+}
+
+export type Vista =
+    | { tipo: "lista" }
+    | { tipo: "editor"; arbol: Arbol }
+    | { tipo: "juego";  arbol: Arbol };
 
 // ─── Toast ────────────────────────────────────────────────
 export type ToastState = { msg: string; type: "ok" | "err" } | null;

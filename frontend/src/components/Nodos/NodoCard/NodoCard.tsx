@@ -8,9 +8,10 @@ interface NodoCardProps {
     onAdd: (padreId: number) => void;
     onEdit: (nodo: Nodo) => void;
     onDelete: (nodo: Nodo) => void;
+    onPlay: (nodo: Nodo) => void;
 }
 
-export const NodoCard: React.FC<NodoCardProps> = ({ nodo, depth, onAdd, onEdit, onDelete }) => {
+export const NodoCard: React.FC<NodoCardProps> = ({ nodo, depth, onAdd, onEdit, onDelete, onPlay }) => {
     const puedeAgregarHijo = nodo.hijos.length < 2 && !nodo.es_final;
     const initials = nodo.texto.split(" ").slice(0, 2).map((w) => w[0]?.toUpperCase()).join("");
 
@@ -60,6 +61,11 @@ export const NodoCard: React.FC<NodoCardProps> = ({ nodo, depth, onAdd, onEdit, 
                 <path d="M7.5 1.5l2 2L3 10H1v-2l6.5-6.5z" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
                 </svg>
             </button>
+            <button className="n-btn-play-node" onClick={() => onPlay(nodo)} title="Jugar desde este nodo">
+                <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
+                <path d="M2 1.5L9 5.5L2 9.5V1.5Z" stroke="currentColor" strokeWidth="1.3" fill="currentColor" />
+                </svg>
+            </button>
             {nodo.padre_id !== null && (
                 <button className="n-btn-del-node" onClick={() => onDelete(nodo)} title="Eliminar nodo">
                 <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
@@ -80,6 +86,7 @@ export const NodoCard: React.FC<NodoCardProps> = ({ nodo, depth, onAdd, onEdit, 
                 onAdd={onAdd}
                 onEdit={onEdit}
                 onDelete={onDelete}
+                onPlay={onPlay}
                 />
             ))}
             </ul>

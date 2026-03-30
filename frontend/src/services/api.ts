@@ -1,4 +1,4 @@
-import type { Arbol, AuthResponse, Centro, CreateCentroDTO, MessageResponse, Nodo, User } from "../types";
+import type { Arbol, AuthResponse, Centro, CreateCentroDTO, MessageResponse, Nodo, NodoJuego, User } from "../types";
 
 
 
@@ -188,4 +188,11 @@ export const api = {
             method: "DELETE",
         }),
     },
-};
+    juego: {
+    // Obtiene un nodo para jugar; sin nodo_id = raíz
+        getNodo: (pid: number, aid: number, nodo_id?: number) => {
+            const qs = nodo_id !== undefined ? `?nodo_id=${nodo_id}` : "";
+            return apiFetch<NodoJuego>(`${API}/api/pacientes/${pid}/arboles/${aid}/jugar${qs}`);
+        },
+    },
+}

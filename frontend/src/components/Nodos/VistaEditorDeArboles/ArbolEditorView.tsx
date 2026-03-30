@@ -1,9 +1,3 @@
-
-
-
-// ══════════════════════════════════════════════════════════
-//  VISTA 2 — Editor del árbol (árbol visual)
-
 import { useCallback, useEffect, useState } from "react";
 import type { Arbol, Nodo, Paciente } from "../../../types";
 import { useToast } from "../../../hooks/useToast";
@@ -15,8 +9,12 @@ import { Spinner } from "../Spinner";
 import { NodoCard } from "../NodoCard/NodoCard";
 import { TituloInlineEdit } from "../TituloInlineEdit";
 import { NodoFormModal } from "../modal/NodoFormModal";
+import { JuegoView } from "../JuegoView/JuegoView";
 
 // ══════════════════════════════════════════════════════════
+//  VISTA 2 — Editor del árbol (árbol visual)
+// ══════════════════════════════════════════════════════════
+
 interface ArbolEditorProps {
     paciente: Paciente;
     arbolMeta: Arbol;
@@ -32,6 +30,7 @@ export const ArbolEditorView: React.FC<ArbolEditorProps> = ({ paciente, arbolMet
     const [addModal, setAddModal] = useState<number | null>(null);   // padre_id
     const [editModal, setEditModal] = useState<Nodo | null>(null);
     const [deleteTarget, setDeleteTarget] = useState<Nodo | null>(null);
+    const [nodoEnJuego, setNodoEnJuego] = useState<Nodo | null>(null);
     const { toast, show: showToast } = useToast();
 
     const cargar = useCallback(async () => {
@@ -80,6 +79,18 @@ export const ArbolEditorView: React.FC<ArbolEditorProps> = ({ paciente, arbolMet
     const countNodos = (n: Nodo): number => 1 + n.hijos.reduce((a, h) => a + countNodos(h), 0);
     const countFinales = (n: Nodo): number => (n.es_final ? 1 : 0) + n.hijos.reduce((a, h) => a + countFinales(h), 0);
     const depth = (n: Nodo): number => n.hijos.length === 0 ? 0 : 1 + Math.max(...n.hijos.map(depth));
+
+    // Si hay un nodo en juego, mostrar JuegoView
+    if (nodoEnJuego) {
+        return (
+            <JuegoView
+                paciente={paciente}
+                arbol={arbolMeta}
+                nodoInicial={nodoEnJuego.id}
+                onBack={() => setNodoEnJuego(null)}
+            />
+        );
+    }
 
     return (
         <div className="n-page">
@@ -144,6 +155,7 @@ export const ArbolEditorView: React.FC<ArbolEditorProps> = ({ paciente, arbolMet
                         onAdd={(id) => setAddModal(id)}
                         onEdit={(n) => setEditModal(n)}
                         onDelete={(n) => setDeleteTarget(n)}
+                        onPlay={(n) => setNodoEnJuego(n)}
                     />
                     </ul>
                 </div>

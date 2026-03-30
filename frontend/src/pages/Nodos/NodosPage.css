@@ -485,6 +485,15 @@ body {
 }
 .n-btn-edit-node:hover { background: var(--bg); color: var(--text-primary); border-color: var(--border-2); }
 
+.n-btn-play-node {
+  display: flex; align-items: center; justify-content: center;
+  width: 24px; height: 24px;
+  background: var(--surface-2); color: var(--text-muted);
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  cursor: pointer; transition: background var(--t), color var(--t), border-color var(--t);
+}
+.n-btn-play-node:hover { background: var(--green-bg); color: var(--green); border-color: #86efac; }
+
 .n-btn-del-node {
   display: flex; align-items: center; justify-content: center;
   width: 24px; height: 24px;
@@ -637,6 +646,188 @@ body {
 
 .n-toggle__label { font-size: 13px; font-weight: 500; color: var(--text-primary); }
 .n-toggle__desc  { font-size: 12px; color: var(--text-muted); margin-top: 2px; line-height: 1.4; }
+
+
+
+/* ── Screen shell ── */
+.nj-screen {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+/* ── Meta bar ── */
+.nj-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 1.25rem 8px;
+  flex-shrink: 0;
+}
+.nj-meta__arbol {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+.nj-meta__nivel {
+  font-size: 11px;
+  font-family: 'IBM Plex Mono', monospace;
+  color: var(--text-muted);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+
+/* ── Stage ── */
+.nj-stage {
+  flex: 1;
+  display: flex;
+  padding: 0 1.25rem 1.25rem;
+  min-height: 0;
+}
+
+/* ── Botón principal ── */
+.nj-btn-main {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  font-family: inherit;
+  padding: 2rem;
+  text-align: center;
+  transition: background var(--t), border-color var(--t), box-shadow var(--t);
+  box-shadow: var(--shadow-sm);
+}
+.nj-btn-main:hover:not(:disabled) {
+  background: #fafafa;
+  border-color: var(--border-2);
+  box-shadow: var(--shadow);
+}
+.nj-btn-main:active:not(:disabled) {
+  background: var(--accent-light);
+  border-color: #bfdbfe;
+  transform: scale(0.995);
+}
+.nj-btn-main--disabled { opacity: 0.5; cursor: default; }
+
+/* ── Texto del botón ── */
+.nj-btn-main__texto {
+  font-size: clamp(22px, 4vw, 36px);
+  font-weight: 500;
+  color: var(--text-primary);
+  letter-spacing: -0.5px;
+  line-height: 1.3;
+  max-width: 600px;
+}
+
+/* ── Hints ── */
+.nj-hint {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
+.nj-hint__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 7px 14px;
+  border-radius: 20px;
+  font-family: 'IBM Plex Mono', monospace;
+  line-height: 1;
+}
+.nj-hint__chip svg {
+  flex-shrink: 0;
+  width: 13px;
+  height: 13px;
+}
+.nj-hint__chip--single {
+  background: var(--accent-light);
+  color: var(--accent);
+  border: 1px solid #bfdbfe;
+}
+.nj-hint__chip--double {
+  background: var(--green-bg);
+  color: var(--green-fg);
+  border: 1px solid #a7f3d0;
+}
+/* ── Final screen ── */
+.nj-screen--final {
+  background: var(--green-bg);
+}
+
+.nj-final {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 2rem;
+  text-align: center;
+}
+
+.nj-final__icon {
+  color: var(--green);
+  margin-bottom: 4px;
+}
+
+.nj-final__label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--green);
+}
+
+.nj-final__texto {
+  font-size: clamp(22px, 4vw, 36px);
+  font-weight: 500;
+  letter-spacing: -0.5px;
+  line-height: 1.3;
+  color: var(--text-primary);
+  max-width: 520px;
+}
+
+.nj-final__nivel {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+.nj-btn-restart {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 12px;
+  padding: 11px 22px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background var(--t), border-color var(--t), color var(--t);
+}
+.nj-btn-restart:hover {
+  background: var(--bg);
+  border-color: var(--border-2);
+  color: var(--text-primary);
+}
 
 /* ── Spinner ─────────────────────────────────── */
 .n-spinner {

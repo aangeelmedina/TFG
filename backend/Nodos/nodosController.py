@@ -10,35 +10,15 @@ nodos_bp = Blueprint("nodos", __name__, url_prefix="/api")
 
 @nodos_bp.route("/pacientes/<int:paciente_id>/arboles", methods=["GET"])
 def get_arboles(paciente_id: int):
-    """
-    Lista todos los árboles de decisión de un paciente.
-
-    Response 200:
-        [ { id, titulo, paciente_id, creado_en, num_nodos }, ... ]
-    Response 404:
-        { "error": "Paciente no encontrado" }
-    """
     paciente = Paciente.query.get(paciente_id)
     if not paciente:
         return jsonify({"error": "Paciente no encontrado"}), 404
-
     arboles = [a.to_dict() for a in paciente.arboles]
     return jsonify(arboles), 200
 
 
 @nodos_bp.route("/pacientes/<int:paciente_id>/arboles", methods=["POST"])
 def crear_arbol(paciente_id: int):
-    """
-    Crea un árbol nuevo para el paciente con un nodo raíz vacío.
-
-    Body JSON (opcional):
-        { "titulo": "Nombre del árbol" }
-
-    Response 201:
-        { id, titulo, paciente_id, creado_en, num_nodos, raiz: {...} }
-    Response 404:
-        { "error": "Paciente no encontrado" }
-    """
     paciente = Paciente.query.get(paciente_id)
     if not paciente:
         return jsonify({"error": "Paciente no encontrado"}), 404
@@ -46,12 +26,10 @@ def crear_arbol(paciente_id: int):
     body   = request.get_json(silent=True) or {}
     titulo = (body.get("titulo") or "").strip() or "Árbol sin título"
 
-    # Crear árbol
     arbol = ArbolDecision(titulo=titulo, paciente_id=paciente_id)
     db.session.add(arbol)
-    db.session.flush()  # obtener arbol.id antes del commit
+    db.session.flush()
 
-    # Crear nodo raíz automáticamente
     raiz = Nodo(texto="Inicio", es_final=False, arbol_id=arbol.id)
     db.session.add(raiz)
     db.session.commit()
@@ -61,12 +39,6 @@ def crear_arbol(paciente_id: int):
 
 @nodos_bp.route("/pacientes/<int:paciente_id>/arboles/<int:arbol_id>", methods=["GET"])
 def get_arbol(paciente_id: int, arbol_id: int):
-    """
-    Devuelve un árbol completo con todos sus nodos anidados.
-
-    Response 200:
-        { id, titulo, paciente_id, creado_en, num_nodos, raiz: { ...recursivo... } }
-    """
     arbol = _get_arbol_o_404(paciente_id, arbol_id)
     if isinstance(arbol, tuple):
         return arbol
@@ -75,12 +47,6 @@ def get_arbol(paciente_id: int, arbol_id: int):
 
 @nodos_bp.route("/pacientes/<int:paciente_id>/arboles/<int:arbol_id>", methods=["PATCH"])
 def editar_arbol(paciente_id: int, arbol_id: int):
-    """
-    Edita el título de un árbol.
-
-    Body JSON:
-        { "titulo": "Nuevo título" }
-    """
     arbol = _get_arbol_o_404(paciente_id, arbol_id)
     if isinstance(arbol, tuple):
         return arbol
@@ -97,12 +63,6 @@ def editar_arbol(paciente_id: int, arbol_id: int):
 
 @nodos_bp.route("/pacientes/<int:paciente_id>/arboles/<int:arbol_id>", methods=["DELETE"])
 def eliminar_arbol(paciente_id: int, arbol_id: int):
-    """
-    Elimina un árbol completo y todos sus nodos (cascade).
-
-    Response 200:
-        { "eliminado": arbol_id }
-    """
     arbol = _get_arbol_o_404(paciente_id, arbol_id)
     if isinstance(arbol, tuple):
         return arbol
@@ -118,15 +78,6 @@ def eliminar_arbol(paciente_id: int, arbol_id: int):
 
 @nodos_bp.route("/pacientes/<int:paciente_id>/arboles/<int:arbol_id>/nodos", methods=["POST"])
 def crear_nodo(paciente_id: int, arbol_id: int):
-    """
-    Crea un nodo hijo bajo un nodo padre del árbol.
-
-    Body JSON:
-        { "padre_id": 5, "texto": "...", "es_final": false }
-
-    Response 201:
-        Nodo creado serializado (sin hijos)
-    """
     arbol = _get_arbol_o_404(paciente_id, arbol_id)
     if isinstance(arbol, tuple):
         return arbol
@@ -155,12 +106,6 @@ def crear_nodo(paciente_id: int, arbol_id: int):
 
 @nodos_bp.route("/pacientes/<int:paciente_id>/arboles/<int:arbol_id>/nodos/<int:nodo_id>", methods=["PATCH"])
 def editar_nodo(paciente_id: int, arbol_id: int, nodo_id: int):
-    """
-    Edita texto y/o es_final de un nodo.
-
-    Body JSON (campos opcionales):
-        { "texto": "...", "es_final": true }
-    """
     arbol = _get_arbol_o_404(paciente_id, arbol_id)
     if isinstance(arbol, tuple):
         return arbol
@@ -186,12 +131,6 @@ def editar_nodo(paciente_id: int, arbol_id: int, nodo_id: int):
 
 @nodos_bp.route("/pacientes/<int:paciente_id>/arboles/<int:arbol_id>/nodos/<int:nodo_id>", methods=["DELETE"])
 def eliminar_nodo(paciente_id: int, arbol_id: int, nodo_id: int):
-    """
-    Elimina un nodo y todos sus descendientes (cascade).
-    No permite eliminar el nodo raíz — usa eliminar_arbol para eso.
-
-    Response 200: { "eliminado": nodo_id }
-    """
     arbol = _get_arbol_o_404(paciente_id, arbol_id)
     if isinstance(arbol, tuple):
         return arbol
@@ -211,11 +150,78 @@ def eliminar_nodo(paciente_id: int, arbol_id: int, nodo_id: int):
 
 
 # ══════════════════════════════════════════════
+#  JUGAR AL ÁRBOL  —  GET /pacientes/:pid/arboles/:aid/jugar
+# ══════════════════════════════════════════════
+
+@nodos_bp.route("/pacientes/<int:paciente_id>/arboles/<int:arbol_id>/jugar", methods=["GET"])
+def jugar_arbol(paciente_id: int, arbol_id: int):
+    """
+    Devuelve el nodo actual para jugar.
+
+    Query params:
+        nodo_id (opcional) — si se omite, devuelve la raíz
+
+    Response 200:
+    {
+        "id":       int,
+        "texto":    str,
+        "es_final": bool,
+        "nivel":    int,           # profundidad desde la raíz (0 = raíz)
+        "num_hijos": int,          # 0, 1 ó 2
+        "hijos": [
+            { "id": int, "texto": str, "es_final": bool },
+            ...
+        ]
+    }
+
+    Instrucciones de navegación para el frontend:
+      - 1 hijo  → click simple avanza al único hijo
+      - 2 hijos → click simple = hijos[0], doble click = hijos[1]
+      - 0 hijos (es_final) → nodo final, mostrar mensaje de fin
+    """
+    arbol = _get_arbol_o_404(paciente_id, arbol_id)
+    if isinstance(arbol, tuple):
+        return arbol
+
+    nodo_id = request.args.get("nodo_id", type=int)
+
+    if nodo_id is None:
+        # Empezar por la raíz
+        nodo = Nodo.query.filter_by(arbol_id=arbol_id, padre_id=None).first()
+        if not nodo:
+            return jsonify({"error": "El árbol no tiene nodo raíz"}), 404
+    else:
+        nodo = _get_nodo_o_404(nodo_id, arbol_id)
+        if isinstance(nodo, tuple):
+            return nodo
+
+    # Calcular nivel (profundidad desde raíz)
+    nivel   = 0
+    cursor  = nodo
+    while cursor.padre_id is not None:
+        cursor = Nodo.query.get(cursor.padre_id)
+        nivel += 1
+
+    hijos = Nodo.query.filter_by(padre_id=nodo.id).all()
+
+    return jsonify({
+        "id":        nodo.id,
+        "texto":     nodo.texto,
+        "es_final":  nodo.es_final,
+        "nivel":     nivel,
+        "num_hijos": len(hijos),
+        "hijos": [
+            {"id": h.id, "texto": h.texto, "es_final": h.es_final}
+            for h in hijos
+        ],
+    }), 200
+
+
+# ══════════════════════════════════════════════
 #  HELPERS INTERNOS
 # ══════════════════════════════════════════════
 
 def _get_arbol_o_404(paciente_id: int, arbol_id: int):
-    """Devuelve el ArbolDecision si pertenece al paciente, o tupla de error."""
     arbol = ArbolDecision.query.get(arbol_id)
     if not arbol:
         return jsonify({"error": "Árbol no encontrado"}), 404
@@ -225,7 +231,6 @@ def _get_arbol_o_404(paciente_id: int, arbol_id: int):
 
 
 def _get_nodo_o_404(nodo_id: int, arbol_id: int):
-    """Devuelve el Nodo si pertenece al árbol, o tupla de error."""
     nodo = Nodo.query.get(nodo_id)
     if not nodo or nodo.arbol_id != arbol_id:
         return jsonify({"error": "Nodo no encontrado en este árbol"}), 404
