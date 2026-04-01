@@ -1,6 +1,7 @@
 import { use, useContext, useState } from "react";
 import { AuthContext } from "../../context/AuthContext";
 import { CentrosContext } from "../../context/CentrosContext";
+import { authAPI } from "../../services/api";
 import type { CreateCentroDTO } from "../../types";
 import "./Navbar.css";
 import { useNavigate } from "react-router-dom";
@@ -12,6 +13,7 @@ const Navbar = () => {
     const { createCentros } = centrosContext || {};
 
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isUserModalOpen, setIsUserModalOpen] = useState(false);
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState<CreateCentroDTO>({
         nombre: '',
@@ -19,9 +21,14 @@ const Navbar = () => {
         telefono: '',
         email: '',
     });
+    const [userFormData, setUserFormData] = useState({ username: '' });
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
+
+    const handleUserChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setUserFormData({ ...userFormData, [e.target.name]: e.target.value });
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -34,6 +41,22 @@ const Navbar = () => {
             alert("Centro creado con éxito");
             setIsModalOpen(false);
             setFormData({ nombre: '', direccion: '', telefono: '', email: '' });
+        } catch (error) {
+            const message = (error as Error).message || "Error al conectar con el servidor";
+            alert(message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleUserSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+        try {
+            await authAPI.register(userFormData.username);
+            alert("Usuario creado con éxito");
+            setIsUserModalOpen(false);
+            setUserFormData({ username: '' });
         } catch (error) {
             const message = (error as Error).message || "Error al conectar con el servidor";
             alert(message);
@@ -64,23 +87,32 @@ const Navbar = () => {
                     {/* User chip */}
                     {user && (
                         <div className="navbar__user">
-                            <span className="navbar__user-name">{ user?.username}</span>
+                            <span className="navbar__user-name">{user?.username}</span>
                             <span className={`navbar__role navbar__role--${user?.role === "superAdmin" ? "super" : user?.role === "admin" ? "admin" : "tutor"}`}>
                                 {roleLabel}
                             </span>
                         </div>
                     )}
-                    
 
                     {user?.role === "superAdmin" && (
-                        <button className="navbar__btn navbar__btn--primary" onClick={() => setIsModalOpen(true)}>
-                            <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-                                <line x1="6.5" y1="1" x2="6.5" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                                <line x1="1" y1="6.5" x2="12" y2="6.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                            </svg>
-                            Crear Centro
-                        </button>
+                        <div className="navbar__actions">
+                            <button className="navbar__btn navbar__btn--primary" onClick={() => setIsUserModalOpen(true)}>
+                                <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+                                    <line x1="6.5" y1="1" x2="6.5" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                    <line x1="1" y1="6.5" x2="12" y2="6.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                </svg>
+                                Crear Usuario
+                            </button>
+                            <button className="navbar__btn navbar__btn--primary" onClick={() => setIsModalOpen(true)}>
+                                <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+                                    <line x1="6.5" y1="1" x2="6.5" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                    <line x1="1" y1="6.5" x2="12" y2="6.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                </svg>
+                                Crear Centro
+                            </button>
+                        </div>
                     )}
+
                     {user && (
                         <button className="navbar__btn navbar__btn--ghost" onClick={() => logout()}>
                             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
@@ -94,7 +126,7 @@ const Navbar = () => {
                 </div>
             </nav>
 
-            {/* Modal */}
+            {/* Modal Crear Centro */}
             {isModalOpen && (
                 <div className="nb-modal-overlay" onClick={() => !loading && setIsModalOpen(false)}>
                     <div className="nb-modal" onClick={(e) => e.stopPropagation()}>
@@ -126,7 +158,6 @@ const Navbar = () => {
                                         required
                                     />
                                 </div>
-
                                 <div className="nb-field">
                                     <label className="nb-label">Dirección</label>
                                     <input
@@ -139,7 +170,6 @@ const Navbar = () => {
                                         required
                                     />
                                 </div>
-
                                 <div className="nb-field">
                                     <label className="nb-label">Teléfono</label>
                                     <input
@@ -152,7 +182,6 @@ const Navbar = () => {
                                         required
                                     />
                                 </div>
-
                                 <div className="nb-field">
                                     <label className="nb-label">Email</label>
                                     <input
@@ -172,6 +201,75 @@ const Navbar = () => {
                                     type="button"
                                     className="nb-btn nb-btn--cancel"
                                     onClick={() => setIsModalOpen(false)}
+                                    disabled={loading}
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="nb-btn nb-btn--save"
+                                    disabled={loading}
+                                >
+                                    {loading ? (
+                                        <>
+                                            <span className="nb-spinner" />
+                                            Guardando…
+                                        </>
+                                    ) : (
+                                        <>
+                                            <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+                                                <path d="M2 7L5 10L11 3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                                            </svg>
+                                            Guardar
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal Crear Usuario */}
+            {isUserModalOpen && (
+                <div className="nb-modal-overlay" onClick={() => !loading && setIsUserModalOpen(false)}>
+                    <div className="nb-modal" onClick={(e) => e.stopPropagation()}>
+                        <div className="nb-modal__header">
+                            <div>
+                                <h2 className="nb-modal__title">Crear nuevo usuario</h2>
+                                <p className="nb-modal__sub">Introduce el nombre de usuario</p>
+                            </div>
+                            <button
+                                className="nb-modal__close"
+                                onClick={() => setIsUserModalOpen(false)}
+                                disabled={loading}
+                            >
+                                ✕
+                            </button>
+                        </div>
+
+                        <form className="nb-modal__form" onSubmit={handleUserSubmit}>
+                            <div className="nb-form-grid">
+                                <div className="nb-field">
+                                    <label className="nb-label">Username</label>
+                                    <input
+                                        className="nb-input"
+                                        type="text"
+                                        name="username"
+                                        placeholder="nombre_usuario"
+                                        value={userFormData.username}
+                                        onChange={handleUserChange}
+                                        required
+                                        autoFocus
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="nb-modal__footer">
+                                <button
+                                    type="button"
+                                    className="nb-btn nb-btn--cancel"
+                                    onClick={() => setIsUserModalOpen(false)}
                                     disabled={loading}
                                 >
                                     Cancelar

@@ -29,6 +29,7 @@ class Usuario(db.Model):
     username   = db.Column(db.String(100), unique=True)
     contrasena = db.Column(db.String(256))
     rol        = db.Column(db.String(50), nullable=True)
+    set_password = db.Column(db.Boolean, default=True)  # True = contraseña temporal
 
 
 # ─────────────────────────────────────────────

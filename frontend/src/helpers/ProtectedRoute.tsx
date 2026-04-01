@@ -1,5 +1,5 @@
 import { use, type ReactNode } from "react"
-import { Navigate } from "react-router-dom"
+import { Navigate, useLocation } from "react-router-dom"
 import { AuthContext } from "../context/AuthContext"
 
 
@@ -9,6 +9,7 @@ interface ProtectedRouteProps{
 
 const ProtectedRoute = ({ children }:ProtectedRouteProps) => {
     const { user, loading } = use(AuthContext)!;
+    const location = useLocation();
 
     if (loading) return (
         <div className="cl-state">
@@ -17,9 +18,14 @@ const ProtectedRoute = ({ children }:ProtectedRouteProps) => {
         </div>
     );
 
-    if(!user){
-        return <Navigate to="/login" replace/>
+    if (!user) {
+        return <Navigate to="/login" replace />
     }
+
+    if (user.setPassword && location.pathname !== "/set-password") {
+        return <Navigate to="/set-password" replace />
+    }
+
     return (
         <>{children}</>
     )

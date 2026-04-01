@@ -2,8 +2,8 @@ import type { Arbol, AuthResponse, Centro, CreateCentroDTO, MessageResponse, Nod
 
 
 
-// [companies]
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001/api";
+// Backend API base URL - asegúrate de que el backend corre en http://localhost:5000
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 // const BASE_URL = import.meta.env.VITE_BASE_URL
 
 /**
@@ -119,12 +119,35 @@ export const authAPI = {
         }
         return response.json();
     },
+    async register(username: string): Promise<void> {
+        const response = await fetch(`${API_URL}/auth/register`, {
+            method: "POST",
+            headers: getHeaders(),
+            body: JSON.stringify({ username }),
+        });
+        if (!response.ok) {
+            const err = await response.json();
+            throw new Error(err.message || "Error al crear el usuario");
+        }
+    },
     async getMe(): Promise<User> {
         const response = await fetch(`${API_URL}/auth/me`, {
         headers: getHeaders(),
         });
         if (!response.ok) {
         throw new Error("Error al obtener información del usuario");
+        }
+        return response.json();
+    },
+    async setPassword(newPassword: string): Promise<{ message: string }> {
+        const response = await fetch(`${API_URL}/auth/set-password`, {
+            method: "POST",
+            headers: getHeaders(),
+            body: JSON.stringify({ password: newPassword }),
+        });
+        if (!response.ok) {
+            const err = await response.json();
+            throw new Error(err.message || "Error al cambiar la contraseña");
         }
         return response.json();
     },

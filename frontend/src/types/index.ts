@@ -4,6 +4,7 @@ export interface User {
     id: number;
     role: string | null;
     username: string;
+    setPassword: boolean;
 }
 
 export interface LoginProps{

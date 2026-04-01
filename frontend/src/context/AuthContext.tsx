@@ -10,7 +10,7 @@
  */
 import { createContext, type ReactNode } from "react";
 import { useAuth } from "../hooks/useAuth";
-import type { User } from "../types";
+import type { AuthResponse, User } from "../types";
 
 
 // QUE datos y funciones ofrece este contexto
@@ -18,7 +18,7 @@ export interface AuthContextType {
     user: User | null; // Datos del usuario (null = no logueado)
     token: string | null; // Token JWT (null = no logueado)
     loading: boolean; // true mientras verificamos sesion al arrancar
-    login: (email: string, password: string) => Promise<boolean>;
+    login: (email: string, password: string) => Promise<AuthResponse | null>;
     logout: () => void;
     checkAuth: () => Promise<void>;
 }

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { authAPI } from "../services/api";
-import type { User } from "../types";
+import type { User, AuthResponse } from "../types";
 
 export const useAuth = () => {
     const [user, setUser] = useState<User | null>(null);
@@ -12,17 +12,17 @@ export const useAuth = () => {
     // mientras verificamos si el token guardado sigue siendo valido
     const [loading, setLoading] = useState(true);
 
-    const login = async (email:string,password:string): Promise<boolean> => {
+    const login = async (email: string, password: string): Promise<AuthResponse | null> => {
         try {
-            const response = await authAPI.login(email,password);
+            const response = await authAPI.login(email, password);
             setUser(response.user);
             setToken(response.token);
             localStorage.setItem("token", response.token);
-            return true
+            return response;
         } catch (err) {
             const message = err instanceof Error ? err.message : "Error al iniciar sesion";
-            console.log(message)
-            return false
+            console.log(message);
+            return null;
         }
     };
 

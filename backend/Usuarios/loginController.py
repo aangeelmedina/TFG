@@ -35,7 +35,8 @@ def login():
             "user": {
                 "id": user.id,
                 "username": user.username,
-                "role": user.rol # o user.role si lo cambiaste
+                "role": user.rol,
+                "setPassword": user.set_password
             },
             "token": access_token 
         }), 200
@@ -43,32 +44,31 @@ def login():
     return jsonify({"message": "Credenciales inválidas"}), 401
 
 
-@usuarios_bp.route('/register', methods=['POST']) # 🔥 Solo POST y recibe JSON
+@usuarios_bp.route('/register', methods=['POST'])
 def register():
     data = request.get_json()
-    
     if not data:
         return jsonify({"message": "No se enviaron datos"}), 400
-        
+
     username = data.get('username')
-    password = data.get('password')
-    
-    if not username or not password:
-        return jsonify({"message": "Faltan campos obligatorios"}), 400
+    if not username:
+        return jsonify({"message": "El username es obligatorio"}), 400
 
-    # Verificar si el usuario ya existe
     if Usuario.query.filter_by(username=username).first():
-        return jsonify({"message": "El nombre de usuario ya está en uso"}), 409
+        return jsonify({"message": "El usuario ya existe"}), 409
 
-    # Crear usuario
-    hashed_password = generate_password_hash(password)
-    new_user = Usuario(username=username, contrasena=hashed_password, rol="user") # Asignar un rol por defecto
-    
+    hashed = generate_password_hash(username)  # contraseña temporal = username encriptado
+
+    new_user = Usuario(
+        username=username,
+        contrasena=hashed,
+        rol=data.get('rol', 'tutor'),
+        set_password=True
+    )
     db.session.add(new_user)
-    db.session.commit() 
-    
-    # 🔥 Devolvemos JSON, ya no redirigimos a una plantilla
-    return jsonify({"message": "Usuario registrado exitosamente"}), 201
+    db.session.commit()
+
+    return jsonify({"message": "Usuario creado correctamente"}), 201
 
 
 @usuarios_bp.route('/me', methods=['GET'])
@@ -85,8 +85,35 @@ def get_me():
     return jsonify({
         "id": user.id,
         "username": user.username,
-        "role": user.rol
+        "role": user.rol,
+        "setPassword": user.set_password
     }), 200
+
+
+@usuarios_bp.route('/set-password', methods=['POST'])
+@jwt_required()
+def set_password():
+    """Cambiar contraseña temporal al acceder por primera vez"""
+    current_user_id = get_jwt_identity()
+    
+    user = Usuario.query.get(current_user_id)
+    if not user:
+        return jsonify({"message": "Usuario no encontrado"}), 404
+    
+    data = request.get_json()
+    if not data or 'password' not in data:
+        return jsonify({"message": "La contraseña es requerida"}), 400
+    
+    new_password = data.get('password')
+    if not new_password or len(new_password) < 6:
+        return jsonify({"message": "La contraseña debe tener al menos 6 caracteres"}), 400
+    
+    # Actualizar contraseña y marcar como que ya cambió su contraseña
+    user.contrasena = generate_password_hash(new_password)
+    user.set_password = False
+    db.session.commit()
+    
+    return jsonify({"message": "Contraseña actualizada correctamente"}), 200
 
 
 # El Logout ya no es estrictamente necesario en el backend a menos que uses Blocklists (lista negra de tokens).
