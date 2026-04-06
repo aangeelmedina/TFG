@@ -5,7 +5,6 @@ import Home from "./pages/home/Home"
 import Login from "./pages/Auth/Login"
 import SetPasswordPage from "./pages/Auth/SetPasswordPage"
 import Navbar from "./components/Navbar/Navbar"
-import DashboardAnalytics from "./pages/DashBoard/DashboardAnalytics"
 import CentroAdminPage from "./pages/centros/Centroadminpage"
 
 
@@ -32,11 +31,6 @@ const App = () => {
         <Route path="/home" element={
           <ProtectedRoute >
             <Home />
-          </ProtectedRoute>
-        } />
-        <Route path="/dashboard" element={
-          <ProtectedRoute >
-            <DashboardAnalytics />
           </ProtectedRoute>
         } />
         <Route path="/centros/:centroId/admin" element={

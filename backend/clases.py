@@ -4,7 +4,9 @@ from flask import Flask
 from dotenv import load_dotenv
 import os
 
-load_dotenv()
+# override=False = las variables del sistema (Docker) tienen prioridad sobre el .env
+load_dotenv(override=False)
+
 pymysql.install_as_MySQLdb()
 
 app = Flask(__name__)
@@ -29,14 +31,11 @@ class Usuario(db.Model):
     username   = db.Column(db.String(100), unique=True)
     contrasena = db.Column(db.String(256))
     rol        = db.Column(db.String(50), nullable=True)
-    set_password = db.Column(db.Boolean, default=True)  # True = contraseña temporal
+    set_password = db.Column(db.Boolean, default=True)
 
 
 # ─────────────────────────────────────────────
 # NODO
-# Ahora los nodos pertenecen a un ArbolDecision
-# (arbol_id) en vez de estar sueltos.
-# La raíz de cada árbol tiene padre_id = None.
 # ─────────────────────────────────────────────
 class Nodo(db.Model):
     __tablename__ = 'nodos'
@@ -46,16 +45,14 @@ class Nodo(db.Model):
     img      = db.Column(db.String(200), nullable=True)
     es_final = db.Column(db.Boolean, default=False)
 
-    # Jerarquía padre → hijos
     padre_id = db.Column(db.Integer, db.ForeignKey('nodos.id'), nullable=True)
     hijos    = db.relationship(
         'Nodo',
         backref=db.backref('padre', remote_side='Nodo.id'),
         lazy=True,
-        cascade='all, delete-orphan',   # borrar padre borra hijos
+        cascade='all, delete-orphan',
     )
 
-    # Árbol al que pertenece este nodo
     arbol_id = db.Column(db.Integer, db.ForeignKey('arboles_decision.id'), nullable=True)
 
     def __repr__(self):
@@ -81,8 +78,6 @@ class Nodo(db.Model):
 
 # ─────────────────────────────────────────────
 # ÁRBOL DE DECISIÓN
-# Cada árbol pertenece a un paciente y tiene
-# exactamente un nodo raíz (padre_id = None).
 # ─────────────────────────────────────────────
 class ArbolDecision(db.Model):
     __tablename__ = 'arboles_decision'
@@ -92,18 +87,16 @@ class ArbolDecision(db.Model):
     paciente_id = db.Column(db.Integer, db.ForeignKey('pacientes.id'), nullable=False)
     creado_en   = db.Column(db.DateTime, server_default=db.func.now())
 
-    # Relación con todos los nodos de este árbol
     nodos = db.relationship(
         'Nodo',
         backref=db.backref('arbol', lazy=True),
         lazy=True,
-        cascade='all, delete-orphan',   # borrar árbol borra todos sus nodos
+        cascade='all, delete-orphan',
         foreign_keys='Nodo.arbol_id',
     )
 
     @property
     def raiz(self):
-        """Devuelve el nodo raíz (padre_id = None) de este árbol."""
         return next((n for n in self.nodos if n.padre_id is None), None)
 
     def to_dict(self, include_tree: bool = False) -> dict:
@@ -137,9 +130,6 @@ class Centro(db.Model):
 
 # ─────────────────────────────────────────────
 # PACIENTE
-# La relación nodos_pacientes anterior ya no es
-# necesaria: los nodos se acceden a través de
-# ArbolDecision. Se elimina para evitar confusión.
 # ─────────────────────────────────────────────
 class Paciente(db.Model):
     __tablename__ = 'pacientes'
@@ -157,7 +147,6 @@ class Paciente(db.Model):
 
     centro  = db.relationship('Centro', backref=db.backref('pacientes', lazy=True))
 
-    # Un paciente puede tener varios árboles de decisión
     arboles = db.relationship(
         'ArbolDecision',
         backref=db.backref('paciente', lazy=True),

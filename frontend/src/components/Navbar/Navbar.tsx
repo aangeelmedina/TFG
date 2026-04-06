@@ -38,7 +38,6 @@ const Navbar = () => {
         setLoading(true);
         try {
             await createCentros({ ...formData, user: user!.id });
-            alert("Centro creado con éxito");
             setIsModalOpen(false);
             setFormData({ nombre: '', direccion: '', telefono: '', email: '' });
         } catch (error) {
@@ -54,7 +53,6 @@ const Navbar = () => {
         setLoading(true);
         try {
             await authAPI.register(userFormData.username);
-            alert("Usuario creado con éxito");
             setIsUserModalOpen(false);
             setUserFormData({ username: '' });
         } catch (error) {

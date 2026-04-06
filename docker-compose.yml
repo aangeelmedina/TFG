@@ -1,0 +1,56 @@
+services:
+
+  # ─── MySQL ────────────────────────────────────────────────────────
+  mysql:
+    image: mysql:8.0
+    container_name: tfg_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root_secret
+      MYSQL_DATABASE: tfg_db
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: admin
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uadmin", "-padmin"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ─── Backend Flask ────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: tfg_backend
+    restart: unless-stopped
+    environment:
+      # Variables pasadas directamente: disponibles desde el primer instante
+      DATABASE_URL: mysql+pymysql://root:root_secret@mysql:3306/tfg_db
+      SECRET_KEY: una_clave_muy_segura_y_larga_12345
+      CORS_ORIGINS: "http://localhost:5173,http://localhost"
+    ports:
+      - "5000:5000"
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  # ─── Frontend React ───────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ""   # Vacío = rutas relativas, Nginx hace el proxy
+    container_name: tfg_frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+volumes:
+  mysql_data:

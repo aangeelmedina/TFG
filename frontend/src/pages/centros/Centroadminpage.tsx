@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { use } from "react";
 import { AuthContext } from "../../context/AuthContext";
-import "./CentroAdminPage.css";
+import "./Centroadminpage.css";
 import { ESTADO_OPCIONES, type EstadoPaciente, type Paciente } from "../../types";
 import { StatsBar } from "../../components/Centros/StatsBar/StatsBar";
 import { PacientesTable } from "../../components/Centros/Table/PacientesTable";

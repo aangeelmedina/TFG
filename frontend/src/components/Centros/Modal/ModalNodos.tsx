@@ -14,6 +14,13 @@ export function ModalNodos({ paciente, onClose }: { paciente: Paciente; onClose:
             id: paciente.id,
             nombre: paciente.nombre,
             apellidos: paciente.apellidos,
+            edad: paciente.edad,
+            dni: paciente.dni,
+            estado: paciente.estado,
+            fecha_ingreso: paciente.fecha_ingreso,
+            contacto: paciente.contacto,
+            centro_id: paciente.centro_id,
+            historial_medico: paciente.historial_medico,
           }}
           onBack={onClose}
         />
