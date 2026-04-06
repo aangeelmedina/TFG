@@ -35,7 +35,7 @@ const CentrosCard = (data: CentrosCardProps) => {
     const [selectedRol, setSelectedRol] = useState<string>("tutor");
     const [loading, setLoading] = useState(false);
     const [mensaje, setMensaje] = useState<{ texto: string; error: boolean }>({ texto: "", error: false });
-    const API_URL = import.meta.env.VITE_API_URL;
+    const API_URL = import.meta.env.VITE_API_URL ?? "";
     const navigate = useNavigate();
 
     const puedeAñadirUsuarios =
@@ -60,9 +60,18 @@ const CentrosCard = (data: CentrosCardProps) => {
                 fetch(`${API_URL}/usuarios`),
                 fetch(`${API_URL}/centros/${data.id}/usuarios`),
             ]);
+
+            console.log("Status usuarios:", resUsuarios.status);
+            console.log("Status asignados:", resAsignados.status);
+
+            // ⚠️ Aquí falta validar que la respuesta sea OK
+            if (!resUsuarios.ok) throw new Error(`/usuarios respondió ${resUsuarios.status}`);
+            if (!resAsignados.ok) throw new Error(`/centros/${data.id}/usuarios respondió ${resAsignados.status}`);
+
             setUsuarios(await resUsuarios.json());
             setUsuariosCentro(await resAsignados.json());
-        } catch {
+        } catch (err) {
+            console.error("Error real:", err); // <-- mira esto en la consola
             setMensaje({ texto: "Error al cargar usuarios.", error: true });
         }
     };

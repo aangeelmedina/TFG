@@ -62,7 +62,7 @@ def register():
     new_user = Usuario(
         username=username,
         contrasena=hashed,
-        rol=data.get('rol', 'tutor'),
+        rol=None ,  # El rol se asignará después
         set_password=True
     )
     db.session.add(new_user)
