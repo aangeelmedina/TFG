@@ -135,3 +135,13 @@ export type Vista =
 
 // ─── Toast ────────────────────────────────────────────────
 export type ToastState = { msg: string; type: "ok" | "err" } | null;
+
+export type ModalState = Paciente | "nuevo" | null;
+export type Tab = "pacientes" | "personal";
+
+export interface Trabajador {
+  id: number;          // id de la asignación (CentroUsuario)
+  usuario_id: number;
+  username: string;
+  rol: string;
+}

@@ -3,23 +3,25 @@ import { useParams, useNavigate } from "react-router-dom";
 import { use } from "react";
 import { AuthContext } from "../../context/AuthContext";
 import "./Centroadminpage.css";
-import { ESTADO_OPCIONES, type EstadoPaciente, type Paciente } from "../../types";
+import { ESTADO_OPCIONES, type EstadoPaciente, type ModalState, type Paciente, type Tab, type Trabajador } from "../../types";
 import { StatsBar } from "../../components/Centros/StatsBar/StatsBar";
 import { PacientesTable } from "../../components/Centros/Table/PacientesTable";
 import { ModalEditar } from "../../components/Centros/Modal/ModalEditar";
 import { ModalNodos } from "../../components/Centros/Modal/ModalNodos";
+import { PersonalTable } from "../../components/Centros/Table/PersonalTable";
+import { ModalAnadirUsuario } from "../../components/Centros/Modal/ModalAnadirUsuario";
+
+
 const API_URL = import.meta.env.VITE_API_URL;
 
-
 // ─── Page ─────────────────────────────────────────────────────────────────────
-
-type ModalState = Paciente | "nuevo" | null;
 
 export default function CentroAdminPage() {
   const { centroId } = useParams<{ centroId: string }>();
   const navigate     = useNavigate();
-  const { user }     = use(AuthContext)!;
+  const { user,token } = use(AuthContext)!;
 
+  // ── Pacientes state ──
   const [pacientes,    setPacientes]    = useState<Paciente[]>([]);
   const [loadingData,  setLoadingData]  = useState(true);
   const [errorData,    setErrorData]    = useState("");
@@ -29,8 +31,24 @@ export default function CentroAdminPage() {
   const [modalNodos,   setModalNodos]   = useState<Paciente | null>(null);
   const [abrirEditar,  setAbrirEditar]  = useState(false);
 
+  // ── Personal state ──
+  const [personal,         setPersonal]         = useState<Trabajador[]>([]);
+  const [loadingPersonal,  setLoadingPersonal]  = useState(false);
+  const [errorPersonal,    setErrorPersonal]    = useState("");
+  const [modalAnadirUser,  setModalAnadirUser]  = useState(false);
+  const [resetingId,       setResetingId]       = useState<number | null>(null);
+
+  // ── Tab state ──
+  const [tab, setTab] = useState<Tab>("pacientes");
+
   const id = Number(centroId);
 
+
+  const puedeGestionar = 
+    user?.role === "superAdmin" ||
+    personal.some(u => u.usuario_id === user?.id && u.rol === "admin");
+
+  // ── Fetch pacientes ──
   const cargarPacientes = useCallback(async () => {
     setLoadingData(true);
     setErrorData("");
@@ -48,7 +66,52 @@ export default function CentroAdminPage() {
     }
   }, [id, user]);
 
+  // ── Fetch personal ──
+  const cargarPersonal = useCallback(async () => {
+    setLoadingPersonal(true);
+    setErrorPersonal("");
+    try {
+      const res = await fetch(
+        `${API_URL}/centros/${id}/usuarios`,
+        { credentials: "include" }
+      );
+      if (!res.ok) throw new Error((await res.json()).message ?? "Error al cargar personal");
+      setPersonal(await res.json());
+    } catch (e) {
+      setErrorPersonal((e as Error).message);
+    } finally {
+      setLoadingPersonal(false);
+    }
+  }, [id]);
+
   useEffect(() => { cargarPacientes(); }, [cargarPacientes]);
+
+  // Cargar personal solo cuando se cambia al tab de personal
+  useEffect(() => { cargarPersonal(); }, [cargarPersonal]);
+
+  // ── Reset contraseña ──
+  const handleResetPassword = async (trabajador: Trabajador) => {
+    if (!confirm(`¿Resetear contraseña de ${trabajador.username}?`)) return;
+    setResetingId(trabajador.usuario_id);
+    try {
+      const res = await fetch(
+      `${API_URL}/auth/usuarios/${trabajador.usuario_id}/reset-password`,
+        { 
+          method: "POST", 
+          credentials: "include",
+          headers: {
+            "Authorization": `Bearer ${token}`, // ← añadir esto
+          }
+        }
+    );
+      if (!res.ok) throw new Error((await res.json()).message ?? "Error al resetear");
+      alert("Contraseña reseteada correctamente.");
+    } catch (e) {
+      alert((e as Error).message);
+    } finally {
+      setResetingId(null);
+    }
+  };
 
   const pacientesFiltrados = pacientes.filter((p) => {
     const txt = busqueda.toLowerCase();
@@ -76,54 +139,120 @@ export default function CentroAdminPage() {
             <h1 className="page-heading__title">Panel del centro</h1>
             <p className="page-heading__sub">Centro ID {centroId} · {user?.role ?? ""}</p>
           </div>
-          <button className="btn-primary" onClick={() => { setModalEditar("nuevo"); setAbrirEditar(true); }}>
-            <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-              <line x1="6.5" y1="1" x2="6.5" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-              <line x1="1" y1="6.5" x2="12" y2="6.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+
+          {/* Acción según tab activo */}
+          {tab === "pacientes" ? (
+            <button className="btn-primary" onClick={() => { setModalEditar("nuevo"); setAbrirEditar(true); }}>
+              <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+                <line x1="6.5" y1="1" x2="6.5" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                <line x1="1" y1="6.5" x2="12" y2="6.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+              Nuevo paciente
+            </button>
+          ) : (
+            <button className="btn-primary" onClick={() => setModalAnadirUser(true)}>
+              <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+                <line x1="6.5" y1="1" x2="6.5" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                <line x1="1" y1="6.5" x2="12" y2="6.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+              Añadir usuario
+            </button>
+          )}
+        </div>
+
+        {/* Stats (solo en tab pacientes) */}
+        {tab === "pacientes" && <StatsBar pacientes={pacientes} />}
+
+        {/* ── Tabs ── */}
+        <div className="tabs">
+          
+          <button
+            className={`tab-btn ${tab === "pacientes" ? "tab-btn--active" : ""}`}
+            onClick={() => setTab("pacientes")}
+          >
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <rect x="1" y="1" width="12" height="12" rx="2" stroke="currentColor" strokeWidth="1.5"/>
+              <line x1="1" y1="5" x2="13" y2="5" stroke="currentColor" strokeWidth="1.5"/>
+              <line x1="4" y1="8" x2="10" y2="8" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+              <line x1="4" y1="10.5" x2="8" y2="10.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
             </svg>
-            Nuevo paciente
+            Pacientes
+            <span className="tab-badge">{pacientes.length}</span>
           </button>
+          {puedeGestionar && (
+            <button
+              className={`tab-btn ${tab === "personal" ? "tab-btn--active" : ""}`}
+              onClick={() => setTab("personal")}
+            >
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <circle cx="7" cy="4.5" r="2.5" stroke="currentColor" strokeWidth="1.5"/>
+                <path d="M1.5 12.5C1.5 10 4 8 7 8C10 8 12.5 10 12.5 12.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+              </svg>
+              Personal
+              <span className="tab-badge">{personal.length}</span>
+            </button>
+          )}
         </div>
 
-        {/* Stats */}
-        <StatsBar pacientes={pacientes} />
+        {/* ── Contenido por tab ── */}
+        {tab === "pacientes" && (
+          <>
+            {/* Filters */}
+            <div className="filters">
+              <div className="search-box">
+                <svg className="search-icon" width="15" height="15" viewBox="0 0 15 15" fill="none">
+                  <circle cx="6.5" cy="6.5" r="4.5" stroke="currentColor" strokeWidth="1.5"/>
+                  <line x1="10" y1="10" x2="13.5" y2="13.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                </svg>
+                <input type="text" placeholder="Buscar por nombre, DNI o ID…"
+                  value={busqueda} onChange={(e) => setBusqueda(e.target.value)}
+                  className="search-input" />
+                {busqueda && <button className="search-clear" onClick={() => setBusqueda("")}>✕</button>}
+              </div>
+              <select className="filter-select" value={filtroEstado}
+                onChange={(e) => setFiltroEstado(e.target.value as EstadoPaciente | "")}>
+                <option value="">Todos los estados</option>
+                {ESTADO_OPCIONES.map((e) => <option key={e} value={e}>{e}</option>)}
+              </select>
+              <span className="results-count">
+                {pacientesFiltrados.length} paciente{pacientesFiltrados.length !== 1 ? "s" : ""}
+              </span>
+            </div>
 
-        {/* Filters */}
-        <div className="filters">
-          <div className="search-box">
-            <svg className="search-icon" width="15" height="15" viewBox="0 0 15 15" fill="none">
-              <circle cx="6.5" cy="6.5" r="4.5" stroke="currentColor" strokeWidth="1.5"/>
-              <line x1="10" y1="10" x2="13.5" y2="13.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-            </svg>
-            <input type="text" placeholder="Buscar por nombre, DNI o ID…"
-              value={busqueda} onChange={(e) => setBusqueda(e.target.value)}
-              className="search-input" />
-            {busqueda && <button className="search-clear" onClick={() => setBusqueda("")}>✕</button>}
-          </div>
-          <select className="filter-select" value={filtroEstado}
-            onChange={(e) => setFiltroEstado(e.target.value as EstadoPaciente | "")}>
-            <option value="">Todos los estados</option>
-            {ESTADO_OPCIONES.map((e) => <option key={e} value={e}>{e}</option>)}
-          </select>
-          <span className="results-count">
-            {pacientesFiltrados.length} paciente{pacientesFiltrados.length !== 1 ? "s" : ""}
-          </span>
-        </div>
+            {loadingData ? (
+              <div className="table-loading">
+                <span className="btn-spinner btn-spinner--dark" />
+                Cargando pacientes…
+              </div>
+            ) : errorData ? (
+              <div className="table-error">{errorData}</div>
+            ) : (
+              <PacientesTable
+                pacientes={pacientesFiltrados}
+                onEditar={(p) => { setModalEditar(p); setAbrirEditar(true); }}
+                onVerNodos={(p) => setModalNodos(p)}
+              />
+            )}
+          </>
+        )}
 
-        {/* Content */}
-        {loadingData ? (
-          <div className="table-loading">
-            <span className="btn-spinner btn-spinner--dark" />
-            Cargando pacientes…
-          </div>
-        ) : errorData ? (
-          <div className="table-error">{errorData}</div>
-        ) : (
-          <PacientesTable
-            pacientes={pacientesFiltrados}
-            onEditar={(p) => { setModalEditar(p); setAbrirEditar(true); }}
-            onVerNodos={(p) => setModalNodos(p)}
-          />
+        {tab === "personal" && (
+          <>
+            {loadingPersonal ? (
+              <div className="table-loading">
+                <span className="btn-spinner btn-spinner--dark" />
+                Cargando personal…
+              </div>
+            ) : errorPersonal ? (
+              <div className="table-error">{errorPersonal}</div>
+            ) : (
+              <PersonalTable
+                personal={personal}
+                resetingId={resetingId}
+                onResetPassword={handleResetPassword}
+              />
+            )}
+          </>
         )}
       </main>
 
@@ -138,6 +267,15 @@ export default function CentroAdminPage() {
 
       {modalNodos && (
         <ModalNodos paciente={modalNodos} onClose={() => setModalNodos(null)} />
+      )}
+
+      {modalAnadirUser && (
+        <ModalAnadirUsuario
+          centroId={id}
+          onClose={() => setModalAnadirUser(false)}
+          onGuardado={cargarPersonal}
+          currentUserId={user!.id}
+        />
       )}
     </div>
   );

@@ -7,8 +7,6 @@ from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identi
 
 usuarios_bp = Blueprint('usuarios', __name__)
 
-# Nota: Asumo que en tu app principal haces: app.register_blueprint(usuarios_bp, url_prefix='/auth')
-# Así que las rutas serán /auth/login, /auth/register, etc. Si no, pon '/auth/login' aquí abajo.
 
 @usuarios_bp.route('/login', methods=['POST'])
 def login():
@@ -26,8 +24,7 @@ def login():
     user = Usuario.query.filter_by(username=username).first()
 
     if user and check_password_hash(user.contrasena, password):
-        # 1. 🔥 Creamos un token real con flask_jwt_extended guardando el ID
-        # Convertimos user.id a string por si acaso, es una buena práctica para identidades JWT
+        # 1. Creamos un token real con flask_jwt_extended guardando el ID
         access_token = create_access_token(identity=str(user.id))
 
         # 2. Devolvemos la estructura exacta para React
@@ -115,7 +112,28 @@ def set_password():
     
     return jsonify({"message": "Contraseña actualizada correctamente"}), 200
 
+@usuarios_bp.route('/usuarios/<int:usuario_id>/reset-password', methods=['POST'])
+@jwt_required()
+def reset_password(usuario_id):
+    current_user_id = get_jwt_identity()
 
-# El Logout ya no es estrictamente necesario en el backend a menos que uses Blocklists (lista negra de tokens).
-# En una arquitectura JWT básica, el logout se hace en React borrando el localStorage.
+    # Solo superAdmin puede resetear contraseñas
+    solicitante = Usuario.query.get(current_user_id)
+    if not solicitante:
+        return jsonify({"message": "No autenticado"}), 401
+
+    if solicitante.rol != "superAdmin":
+        return jsonify({"message": "No tienes permisos para resetear contraseñas"}), 403
+
+    usuario = Usuario.query.get(usuario_id)
+    if not usuario:
+        return jsonify({"message": "Usuario no encontrado"}), 404
+
+    # Resetear a contraseña temporal (username como contraseña, igual que en register)
+    usuario.contrasena = generate_password_hash(usuario.username)
+    usuario.set_password = True  # fuerza a cambiarla en el próximo login
+    db.session.commit()
+
+    return jsonify({"message": f"Contraseña de {usuario.username} reseteada correctamente"}), 200
+
 
