@@ -1,8 +1,6 @@
 from flask import Blueprint, request, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 from clases import db, Usuario
-
-# 🔥 Importamos todo lo necesario de flask_jwt_extended
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 
 usuarios_bp = Blueprint('usuarios', __name__)
