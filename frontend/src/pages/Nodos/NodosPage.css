@@ -854,13 +854,49 @@ body {
 .n-toast--ok  { background: #1a1a1a; color: #fff; }
 .n-toast--err { background: var(--red-bg); color: #dc2626; border: 1px solid #fecaca; }
 
-/* ── Responsive ──────────────────────────────── */
-@media (max-width: 640px) {
+/* ── Responsive ─────────────────────────────── */
+@media (max-width: 900px) {
   .n-topbar { padding: 0 1rem; }
   .n-topbar__user { display: none; }
-  .n-main { padding: 1.25rem 1rem 3rem; }
-  .n-tree-scroll { padding: 1.5rem 1rem; }
-  .n-card { min-width: 160px; max-width: 190px; padding: 10px 11px; }
-  .n-card__texto { font-size: 12px; }
-  .n-arboles-grid { grid-template-columns: 1fr; }
+  .n-main { padding: 1.5rem 1rem 3rem; }
+  .n-tree-scroll {
+    padding: 1.75rem 1rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .n-tree-scroll::-webkit-scrollbar { height: 9px; }
+  .n-tree-scroll::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.06); border-radius: 8px; }
+  .n-arboles-grid { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 0.85rem; }
+  .n-card { min-width: 180px; max-width: 220px; }
 }
+
+@media (max-width: 640px) {
+  .n-topbar { padding: 0 0.75rem; }
+  .n-topbar__user { display: none; }
+  .n-main { padding: calc(env(safe-area-inset-top, 1rem) + 0.75rem) 0.75rem 3rem; align-items: flex-start; }
+  .n-tree-scroll { padding: 1rem 0.75rem; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .n-tree-scroll::-webkit-scrollbar { height: 8px; }
+  .n-card { min-width: auto; max-width: 100%; padding: 10px 11px; width: 100%; box-sizing: border-box; }
+  .n-card__texto { font-size: 13px; white-space: normal; }
+  .n-arboles-grid { grid-template-columns: 1fr; gap: 12px; }
+
+  /* Convertir árbol a listado vertical para móvil: ocultar líneas y apilar nodos */ 
+  .n-tree { display: block; width: 100%; }
+  .n-tree__root, .n-node__children { flex-direction: column; align-items: stretch; }
+  .n-node > .n-node__children { margin-top: 10px; padding-top: 0; gap: 10px; }
+  .n-node:has(> .n-node__children)::after,
+  .n-node > .n-node__children::before,
+  .n-node > .n-node__children > .n-node::before { display: none !important; background: transparent !important; width: 0 !important; height: 0 !important; }
+  .n-node { align-items: stretch; }
+  .n-card { width: 100%; }
+
+  /* Touch targets */ 
+  .n-btn-main, .n-btn-add-node, .n-btn-edit-node, .n-btn-play-node, .n-btn-delete, .n-btn-icon { touch-action: manipulation; }
+  .n-btn-add-node, .n-btn-edit-node, .n-btn-play-node, .n-btn-delete { width: 36px; height: 36px; }
+}
+
+/* Accessibility / general touch targets */
+.n-topbar .n-btn-icon, .n-btn-main { touch-action: manipulation; }
+
+/* Small-screen improvement: limit tree width to avoid layout shift */
+.n-tree { max-width: 100%; }

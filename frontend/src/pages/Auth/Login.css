@@ -1,4 +1,5 @@
 /* Login.css */
+/* Página de login: centrado y ajustes responsive para móviles/tablets */
 .login-page {
     min-height: 100vh;
     display: flex;
@@ -6,12 +7,15 @@
     justify-content: center;
     background: var(--bg, #f5f5f4);
     font-family: 'DM Sans', sans-serif;
+    padding: 2rem;
+    -webkit-font-smoothing: antialiased;
 }
 
 .login-loading {
     display: flex;
     align-items: center;
     justify-content: center;
+    gap: 10px;
 }
 
 .login-loading__spinner {
@@ -22,6 +26,45 @@
     border-top-color: var(--text-secondary, #6b6b6b);
     border-radius: 50%;
     animation: login-spin 0.7s linear infinite;
+    flex-shrink: 0;
+}
+
+.login-loading__text {
+    font-size: 14px;
+    color: var(--text-muted, #6b6b6b);
 }
 
 @keyframes login-spin { to { transform: rotate(360deg); } }
+
+/* Aumentar zonas táctiles y evitar gestos indeseados */
+.login-page :where(.lf-submit, .lf-input) {
+    touch-action: manipulation;
+}
+
+/* Tablets / pantallas pequeñas: permitir menos padding y reducir spinner */
+@media (max-width: 900px) {
+    .login-page { padding: 1.25rem; }
+    .login-loading__spinner { width: 24px; height: 24px; border-width: 2px; }
+}
+
+/* Móvil: ajustar padding, comportamiento con teclado y tamaños táctiles */
+@media (max-width: 640px) {
+    .login-page {
+        padding: calc(env(safe-area-inset-top, 1rem) + 0.75rem) 0.75rem 1.25rem;
+        align-items: flex-start;
+        justify-content: flex-start;
+    }
+
+    .login-loading__spinner { width: 22px; height: 22px; border-width: 1.8px; }
+    .login-loading__text { font-size: 13px; }
+
+    /* Dejar margen superior en la tarjeta para que no choque con teclado virtual */
+    .login-page > .lf-card { margin-top: 6vh; }
+
+    /* Inputs y botones ligeramente más grandes para la interacción táctil */
+    .login-page :where(.lf-input) { padding: 12px 12px 12px 36px; font-size: 15px; }
+    .login-page :where(.lf-submit) { padding: 12px 16px; font-size: 15px; }
+}
+
+/* Variante full-screen opcional */
+.login-page--fullscreen { min-height: 100vh; padding: 0; display:flex; align-items:center; justify-content:center; }

@@ -1,4 +1,4 @@
-import { use, useContext, useState } from "react";
+import { use, useContext, useState, useEffect, useRef } from "react";
 import { AuthContext } from "../../context/AuthContext";
 import { CentrosContext } from "../../context/CentrosContext";
 import { authAPI } from "../../services/api";
@@ -15,6 +15,23 @@ const Navbar = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isUserModalOpen, setIsUserModalOpen] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const mobileMenuRef = useRef<HTMLDivElement>(null);
+
+    // Cierra el menú móvil al hacer clic fuera
+    useEffect(() => {
+        if (!mobileMenuOpen) return;
+        const handleClickOutside = (e: MouseEvent) => {
+            if (mobileMenuRef.current && !mobileMenuRef.current.contains(e.target as Node)) {
+                setMobileMenuOpen(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, [mobileMenuOpen]);
+
+    // Cierra el menú móvil al cambiar de ruta
+    useEffect(() => { setMobileMenuOpen(false); }, []);
     const [formData, setFormData] = useState<CreateCentroDTO>({
         nombre: '',
         direccion: '',
@@ -71,17 +88,17 @@ const Navbar = () => {
 
     return (
         <>
-            <nav className="navbar">
+            <nav className="navbar" ref={mobileMenuRef}>
                 {/* Brand */}
-                <button onClick={() => navigate("/home")} className="navbar__btn">
+                <button onClick={() => navigate("/home")} className="navbar__brand-btn">
                     <span className="navbar__brand">
                         <span className="navbar__brand-dot" />
                         Nexa Solutions
                     </span>
                 </button>
 
-                {/* Actions */}
-                <div className="navbar__actions">
+                {/* Desktop actions */}
+                <div className="navbar__actions navbar__actions--desktop">
                     {/* User chip */}
                     {user && (
                         <div className="navbar__user">
@@ -122,6 +139,73 @@ const Navbar = () => {
                         </button>
                     )}
                 </div>
+
+                {/* Hamburger button — solo visible en móvil */}
+                {user && (
+                    <button
+                        className={`navbar__hamburger${mobileMenuOpen ? " navbar__hamburger--open" : ""}`}
+                        onClick={() => setMobileMenuOpen(o => !o)}
+                        aria-label="Menú"
+                        aria-expanded={mobileMenuOpen}
+                    >
+                        <span className="navbar__hamburger-bar" />
+                        <span className="navbar__hamburger-bar" />
+                        <span className="navbar__hamburger-bar" />
+                    </button>
+                )}
+
+                {/* Menú móvil desplegable */}
+                {mobileMenuOpen && (
+                    <div className="navbar__mobile-menu">
+                        {user && (
+                            <div className="navbar__mobile-user">
+                                <span className="navbar__mobile-username">{user.username}</span>
+                                <span className={`navbar__role navbar__role--${user.role === "superAdmin" ? "super" : user.role === "admin" ? "admin" : "tutor"}`}>
+                                    {roleLabel}
+                                </span>
+                            </div>
+                        )}
+
+                        {user?.role === "superAdmin" && (
+                            <>
+                                <button
+                                    className="navbar__mobile-item"
+                                    onClick={() => { setMobileMenuOpen(false); setIsUserModalOpen(true); }}
+                                >
+                                    <svg width="15" height="15" viewBox="0 0 13 13" fill="none">
+                                        <line x1="6.5" y1="1" x2="6.5" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                        <line x1="1" y1="6.5" x2="12" y2="6.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                    </svg>
+                                    Crear Usuario
+                                </button>
+                                <button
+                                    className="navbar__mobile-item"
+                                    onClick={() => { setMobileMenuOpen(false); setIsModalOpen(true); }}
+                                >
+                                    <svg width="15" height="15" viewBox="0 0 13 13" fill="none">
+                                        <line x1="6.5" y1="1" x2="6.5" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                        <line x1="1" y1="6.5" x2="12" y2="6.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                    </svg>
+                                    Crear Centro
+                                </button>
+                            </>
+                        )}
+
+                        {user && (
+                            <button
+                                className="navbar__mobile-item navbar__mobile-item--logout"
+                                onClick={() => { setMobileMenuOpen(false); logout(); }}
+                            >
+                                <svg width="15" height="15" viewBox="0 0 14 14" fill="none">
+                                    <path d="M5 2H2.5A1.5 1.5 0 001 3.5v7A1.5 1.5 0 002.5 12H5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                                    <path d="M9 4.5L12 7l-3 2.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                    <line x1="5" y1="7" x2="12" y2="7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                                </svg>
+                                Cerrar sesión
+                            </button>
+                        )}
+                    </div>
+                )}
             </nav>
 
             {/* Modal Crear Centro */}

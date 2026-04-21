@@ -1,6 +1,5 @@
 @import 'tailwindcss';
 
-/* AÑADE ESTO DEBAJO */
 @layer components {
   
   .login-container {

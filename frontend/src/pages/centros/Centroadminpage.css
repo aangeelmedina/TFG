@@ -742,23 +742,115 @@ body {
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* ── Responsive ──────────────────────────────── */
+
+/* ── Tablet: scroll horizontal elegante ─────── */
 @media (max-width: 900px) {
   .admin-main { padding: 1.25rem 1rem 3rem; }
 
+  .table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .table-wrapper::-webkit-scrollbar { height: 9px; }
+  .table-wrapper::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.06); border-radius: 8px; }
+
+  /* Ocultar Contacto para que la tabla encaje en tablets */
   .patients-table th:nth-child(6),
-  .patients-table td:nth-child(6) { display: none; } /* ocultar contacto */
+  .patients-table td:nth-child(6) { display: none; }
+
+  /* Ancho mínimo para que la tabla no se aplaste antes del breakpoint de tarjetas */
+  .patients-table { min-width: 580px; }
 }
 
+/* ── Móvil: convertir filas en tarjetas ──────── */
 @media (max-width: 640px) {
   .topbar { padding: 0 1rem; }
   .topbar__user-name { display: none; }
 
-  .patients-table th:nth-child(3),
-  .patients-table td:nth-child(3) { display: none; } /* ocultar edad */
+  /* ① Cancelar reglas de tablet que romperían el layout de tarjeta */
+  .table-wrapper {
+    overflow: visible !important;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    border-radius: 0;
+    padding: 0;
+  }
+  .patients-table { min-width: 0 !important; width: 100% !important; border: 0; font-size: 14px; }
 
+  /* ② Restaurar columna Contacto que se ocultó en tablet */
+  .patients-table th:nth-child(6),
+  .patients-table td:nth-child(6) { display: flex !important; }
+
+  /* ③ Ocultar el thead — las etiquetas van como ::before */
+  .patients-table thead { display: none !important; }
+
+  /* ④ Estructura de bloque para la tabla y sus secciones */
+  .patients-table,
+  .patients-table tbody { display: block; width: 100%; }
+
+  /* ⑤ Cada fila = tarjeta */
+  .patients-table tr {
+    display: block;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    margin-bottom: 10px;
+    box-shadow: var(--shadow-sm);
+  }
+
+  /* ⑥ Cada celda = fila "label : valor" */
+  .patients-table td {
+    display: flex !important;
+    align-items: center;
+    padding: 7px 0;
+    border-bottom: 1px dashed var(--border);
+    white-space: normal;
+    box-sizing: border-box;
+  }
+  .patients-table td:last-child { border-bottom: none; padding-top: 10px; }
+
+  /* ⑦ Etiqueta a la izquierda (pseudo-elemento) */
+  .patients-table td::before {
+    flex: 0 0 42%;
+    min-width: 0;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: var(--text-muted);
+    padding-right: 10px;
+  }
+
+  /* ⑧ Contenido a la derecha, flexible y sin desbordarse */
+  .patients-table td > * { flex: 1 1 auto; min-width: 0; }
+  .patient-cell { min-width: 0; flex-wrap: nowrap; }
+
+  /* ⑨ Etiquetas — tabla Pacientes (7 columnas) */
+  .patients-table tbody tr td:nth-child(1)::before { content: "Paciente"; }
+  .patients-table tbody tr td:nth-child(2)::before { content: "DNI"; }
+  .patients-table tbody tr td:nth-child(3)::before { content: "Edad"; }
+  .patients-table tbody tr td:nth-child(4)::before { content: "Estado"; }
+  .patients-table tbody tr td:nth-child(5)::before { content: "Ingreso"; }
+  .patients-table tbody tr td:nth-child(6)::before { content: "Contacto"; }
+  .patients-table tbody tr td:nth-child(7)::before { content: "Acciones"; }
+
+  /* ⑩ Etiquetas — tabla Personal (4 columnas), detectado con :has() */
+  .patients-table:has(thead th:nth-child(4):last-child) tbody tr td:nth-child(1)::before { content: "ID"; }
+  .patients-table:has(thead th:nth-child(4):last-child) tbody tr td:nth-child(2)::before { content: "Username"; }
+  .patients-table:has(thead th:nth-child(4):last-child) tbody tr td:nth-child(3)::before { content: "Rol"; }
+  .patients-table:has(thead th:nth-child(4):last-child) tbody tr td:nth-child(4)::before { content: "Acciones"; }
+
+  /* ⑪ Ajustes visuales */
+  .patient-avatar { width: 36px; height: 36px; font-size: 11px; }
+  .patient-name { font-size: 13px; }
+  .patient-id { font-size: 11px; }
+
+  /* ⑫ Botones táctiles */
   .btn span { display: none; }
-
-  .action-buttons { gap: 4px; }
+  .action-buttons { justify-content: flex-end; gap: 6px; flex-wrap: wrap; }
+  .btn { padding: 8px 10px; font-size: 13px; }
 }
 .modal--fullscreen {
   width: 100vw;

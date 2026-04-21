@@ -34,6 +34,21 @@
   font-weight: 400;
 }
 
-@media (max-width: 640px) {
-  .home-container { padding: 1.25rem 1rem 3rem; }
+@media (max-width: 900px) {
+  .home-container { padding: 1.5rem 1rem 3rem; }
+  .home-heading__title { font-size: clamp(18px, 3vw, 20px); }
+  .cl-grid { gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
 }
+
+@media (max-width: 640px) {
+  .home-container { padding: calc(env(safe-area-inset-top, 1rem) + 0.75rem) 0.75rem 3rem; align-items: flex-start; }
+  .home-heading { gap: 6px; }
+  .home-heading__title { font-size: clamp(17px, 4.5vw, 18px); }
+  .home-heading__sub { font-size: 12px; }
+  .cl-grid { grid-template-columns: 1fr; gap: 12px; }
+  .home-container { overflow-x: hidden; -webkit-font-smoothing: antialiased; touch-action: manipulation; }
+  .home-container > .cl-grid { width: 100%; margin: 0; }
+}
+
+/* Accessibility / touch targets */
+.home-container :where(.cc-btn, .cc-card, .lf-submit) { touch-action: manipulation; }
