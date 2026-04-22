@@ -144,4 +144,5 @@ export interface Trabajador {
   usuario_id: number;
   username: string;
   rol: string;
+  activo: boolean;
 }

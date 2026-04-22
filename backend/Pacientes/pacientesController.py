@@ -1,4 +1,5 @@
 from flask import Blueprint, request, jsonify, session
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from clases import db, Paciente, Centro, CentroUsuario, Usuario
 
 pacientes_bp = Blueprint("pacientes", __name__)
@@ -109,11 +110,12 @@ def editar_paciente(paciente_id):
 
 # ── DELETE /pacientes/<id> ────────────────────────────────────────────────────
 @pacientes_bp.route("/pacientes/<int:paciente_id>", methods=["DELETE"])
+@jwt_required()
 def eliminar_paciente(paciente_id):
-    user_id = session.get("user_id") or request.args.get("user_id")
+    user_id = get_jwt_identity()
     paciente = Paciente.query.get_or_404(paciente_id)
 
-    if not user_id or not _tiene_acceso_centro(int(user_id), paciente.centro_id):
+    if not _tiene_acceso_centro(int(user_id), paciente.centro_id):
         return jsonify({"message": "No autorizado"}), 403
 
     try:

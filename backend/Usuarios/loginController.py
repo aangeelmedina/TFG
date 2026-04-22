@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
-from clases import db, Usuario
+from clases import db, Usuario, CentroUsuario
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 
 usuarios_bp = Blueprint('usuarios', __name__)
@@ -115,21 +115,39 @@ def set_password():
 def reset_password(usuario_id):
     current_user_id = get_jwt_identity()
 
-    # Solo superAdmin puede resetear contraseñas
     solicitante = Usuario.query.get(current_user_id)
     if not solicitante:
         return jsonify({"message": "No autenticado"}), 401
-
-    if solicitante.rol != "superAdmin":
-        return jsonify({"message": "No tienes permisos para resetear contraseñas"}), 403
 
     usuario = Usuario.query.get(usuario_id)
     if not usuario:
         return jsonify({"message": "Usuario no encontrado"}), 404
 
-    # Resetear a contraseña temporal (username como contraseña, igual que en register)
+    if solicitante.rol != "superAdmin":
+        # Obtener los centros donde el solicitante es admin
+        centros_admin = CentroUsuario.query.filter_by(
+            usuario_id=current_user_id, rol="admin"
+        ).all()
+        centros_admin_ids = {a.centro_id for a in centros_admin}
+
+        if not centros_admin_ids:
+            return jsonify({"message": "No tienes permisos para resetear contraseñas"}), 403
+
+        # Comprobar que el usuario objetivo pertenece a al menos uno de esos centros
+        pertenece = CentroUsuario.query.filter(
+            CentroUsuario.usuario_id == usuario_id,
+            CentroUsuario.centro_id.in_(centros_admin_ids)
+        ).first()
+
+        if not pertenece:
+            return jsonify({"message": "No tienes permisos para resetear la contraseña de este usuario"}), 403
+
+        # Un admin no puede resetear la contraseña de un superAdmin
+        if usuario.rol == "superAdmin":
+            return jsonify({"message": "No puedes resetear la contraseña de un superAdmin"}), 403
+
     usuario.contrasena = generate_password_hash(usuario.username)
-    usuario.set_password = True  # fuerza a cambiarla en el próximo login
+    usuario.set_password = True
     db.session.commit()
 
     return jsonify({"message": f"Contraseña de {usuario.username} reseteada correctamente"}), 200

@@ -105,7 +105,7 @@ def seed():
         for centro, username, rol in centro_usuario_asignaciones:
             u = usuarios[username]
             if not CentroUsuario.query.filter_by(centro_id=centro.id, usuario_id=u.id).first():
-                db.session.add(CentroUsuario(centro_id=centro.id, usuario_id=u.id, rol=rol))
+                db.session.add(CentroUsuario(centro_id=centro.id, usuario_id=u.id, rol=rol, activo=True))
 
         db.session.commit()
         print("✅ CentroUsuarios creados/verificados (15)")

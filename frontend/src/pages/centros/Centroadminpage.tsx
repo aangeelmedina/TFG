@@ -10,6 +10,9 @@ import { ModalEditar } from "../../components/Centros/Modal/ModalEditar";
 import { ModalNodos } from "../../components/Centros/Modal/ModalNodos";
 import { PersonalTable } from "../../components/Centros/Table/PersonalTable";
 import { ModalAnadirUsuario } from "../../components/Centros/Modal/ModalAnadirUsuario";
+import { ConfirmModal } from "../../components/Nodos/modal/ConfirmModal";
+import { Toast } from "../../components/Nodos/Toast";
+import { useToast } from "../../hooks/useToast";
 
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -37,12 +40,19 @@ export default function CentroAdminPage() {
   const [errorPersonal,    setErrorPersonal]    = useState("");
   const [modalAnadirUser,  setModalAnadirUser]  = useState(false);
   const [resetingId,       setResetingId]       = useState<number | null>(null);
+  const [togglingId,       setTogglingId]       = useState<number | null>(null);
+  const [pacienteAEliminar, setPacienteAEliminar] = useState<Paciente | null>(null);
+  const [trabajadorAReset,  setTrabajadorAReset]  = useState<Trabajador | null>(null);
+  const { toast, show: showToast } = useToast();
 
   // ── Tab state ──
   const [tab, setTab] = useState<Tab>("pacientes");
 
   const id = Number(centroId);
 
+  const personalVisible = user?.role === "superAdmin"
+    ? personal
+    : personal.filter((t) => t.activo);
 
   const puedeGestionar = 
     user?.role === "superAdmin" ||
@@ -90,26 +100,66 @@ export default function CentroAdminPage() {
   useEffect(() => { cargarPersonal(); }, [cargarPersonal]);
 
   // ── Reset contraseña ──
-  const handleResetPassword = async (trabajador: Trabajador) => {
-    if (!confirm(`¿Resetear contraseña de ${trabajador.username}?`)) return;
-    setResetingId(trabajador.usuario_id);
+  const handleResetPassword = (trabajador: Trabajador) => {
+    setTrabajadorAReset(trabajador);
+  };
+
+  const confirmarResetPassword = async () => {
+    if (!trabajadorAReset) return;
+    setResetingId(trabajadorAReset.usuario_id);
     try {
       const res = await fetch(
-      `${API_URL}/auth/usuarios/${trabajador.usuario_id}/reset-password`,
-        { 
-          method: "POST", 
+        `${API_URL}/auth/usuarios/${trabajadorAReset.usuario_id}/reset-password`,
+        {
+          method: "POST",
           credentials: "include",
-          headers: {
-            "Authorization": `Bearer ${token}`, // ← añadir esto
-          }
+          headers: { "Authorization": `Bearer ${token}` },
         }
-    );
+      );
       if (!res.ok) throw new Error((await res.json()).message ?? "Error al resetear");
-      alert("Contraseña reseteada correctamente.");
+      showToast("Contraseña reseteada correctamente.", "ok");
     } catch (e) {
-      alert((e as Error).message);
+      showToast((e as Error).message, "err");
     } finally {
       setResetingId(null);
+      setTrabajadorAReset(null);
+    }
+  };
+
+  const handleToggleEstado = async (trabajador: Trabajador) => {
+    setTogglingId(trabajador.usuario_id);
+    try {
+      const res = await fetch(
+        `${API_URL}/centros/${id}/usuarios/${trabajador.usuario_id}/estado`,
+        { method: "PATCH", headers: { "Authorization": `Bearer ${token}` } }
+      );
+      if (!res.ok) throw new Error((await res.json()).message ?? "Error al cambiar estado");
+      const { activo } = await res.json();
+      setPersonal((prev) =>
+        prev.map((t) => t.usuario_id === trabajador.usuario_id ? { ...t, activo } : t)
+      );
+      showToast(activo ? "Usuario activado." : "Usuario desactivado.", "ok");
+    } catch (e) {
+      showToast((e as Error).message, "err");
+    } finally {
+      setTogglingId(null);
+    }
+  };
+
+  const handleEliminarPaciente = async () => {
+    if (!pacienteAEliminar) return;
+    try {
+      const res = await fetch(`${API_URL}/pacientes/${pacienteAEliminar.id}`, {
+        method: "DELETE",
+        headers: { "Authorization": `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error((await res.json()).message ?? "Error al eliminar");
+      setPacientes((prev) => prev.filter((p) => p.id !== pacienteAEliminar.id));
+      showToast("Paciente eliminado correctamente.", "ok");
+    } catch (e) {
+      showToast((e as Error).message, "err");
+    } finally {
+      setPacienteAEliminar(null);
     }
   };
 
@@ -229,8 +279,10 @@ export default function CentroAdminPage() {
             ) : (
               <PacientesTable
                 pacientes={pacientesFiltrados}
+                userRol={user?.role ?? null}
                 onEditar={(p) => { setModalEditar(p); setAbrirEditar(true); }}
                 onVerNodos={(p) => setModalNodos(p)}
+                onEliminar={(p) => setPacienteAEliminar(p)}
               />
             )}
           </>
@@ -247,9 +299,12 @@ export default function CentroAdminPage() {
               <div className="table-error">{errorPersonal}</div>
             ) : (
               <PersonalTable
-                personal={personal}
+                personal={personalVisible}
                 resetingId={resetingId}
+                togglingId={togglingId}
+                userRol={user?.role ?? null}
                 onResetPassword={handleResetPassword}
+                onToggleEstado={handleToggleEstado}
               />
             )}
           </>
@@ -277,6 +332,29 @@ export default function CentroAdminPage() {
           currentUserId={user!.id}
         />
       )}
+
+      {pacienteAEliminar && (
+        <ConfirmModal
+          title="Eliminar paciente"
+          message={`¿Estás seguro de que quieres eliminar a ${pacienteAEliminar.nombre} ${pacienteAEliminar.apellidos}?`}
+          warn="Esta acción eliminará también todos sus árboles de decisión y no se puede deshacer."
+          onConfirm={handleEliminarPaciente}
+          onCancel={() => setPacienteAEliminar(null)}
+        />
+      )}
+
+      {trabajadorAReset && (
+        <ConfirmModal
+          title="Resetear contraseña"
+          message={`¿Resetear la contraseña de ${trabajadorAReset.username}?`}
+          warn="Se establecerá la contraseña temporal (nombre de usuario) y el usuario deberá cambiarla al iniciar sesión."
+          confirmLabel="Resetear"
+          onConfirm={confirmarResetPassword}
+          onCancel={() => setTrabajadorAReset(null)}
+        />
+      )}
+
+      {toast && <Toast toast={toast} />}
     </div>
   );
 }

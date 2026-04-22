@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify, session
-from clases import db, Centro, Usuario, CentroUsuario  # asegúrate de que Centro esté importado
+from flask_jwt_extended import jwt_required, get_jwt_identity
+from clases import db, Centro, Usuario, CentroUsuario, Paciente  # asegúrate de que Centro esté importado
 
 centros_bp = Blueprint("centros", __name__)
 
@@ -109,7 +110,8 @@ def get_usuarios_centro(centro_id):
             "id": a.id,
             "usuario_id": a.usuario_id,
             "username": a.usuario.username,
-            "rol": a.rol
+            "rol": a.rol,
+            "activo": a.activo
         }
         for a in asignaciones
     ]), 200
@@ -153,8 +155,9 @@ def asignar_usuario(centro_id):
 
     if asignacion:
         asignacion.rol = rol
+        asignacion.activo = True
     else:
-        asignacion = CentroUsuario(centro_id=centro_id, usuario_id=usuario_id, rol=rol)
+        asignacion = CentroUsuario(centro_id=centro_id, usuario_id=usuario_id, rol=rol, activo=True)
         db.session.add(asignacion)
 
     db.session.commit()
@@ -172,3 +175,64 @@ def eliminar_usuario_centro(centro_id, usuario_id):
     db.session.delete(asignacion)
     db.session.commit()
     return jsonify({"message": "Usuario eliminado del centro"}), 200
+
+
+@centros_bp.route("/centros/<int:centro_id>/usuarios/<int:usuario_id>/estado", methods=["PATCH"])
+@jwt_required()
+def toggle_estado_usuario_centro(centro_id, usuario_id):
+    solicitante_id = get_jwt_identity()
+    solicitante = Usuario.query.get(solicitante_id)
+    if not solicitante:
+        return jsonify({"message": "No autenticado"}), 401
+
+    # Solo superAdmin o admin del centro pueden cambiar el estado
+    if solicitante.rol != "superAdmin":
+        permiso = CentroUsuario.query.filter_by(
+            centro_id=centro_id, usuario_id=solicitante_id, rol="admin"
+        ).first()
+        if not permiso:
+            return jsonify({"message": "No tienes permisos"}), 403
+
+    asignacion = CentroUsuario.query.filter_by(
+        centro_id=centro_id, usuario_id=usuario_id
+    ).first()
+    if not asignacion:
+        return jsonify({"message": "Asignación no encontrada"}), 404
+
+    asignacion.activo = not asignacion.activo
+    db.session.commit()
+    estado = "activo" if asignacion.activo else "inactivo"
+    return jsonify({"message": f"Usuario marcado como {estado}", "activo": asignacion.activo}), 200
+
+
+@centros_bp.route("/centro/<int:centro_id>", methods=["DELETE"])
+@jwt_required()
+def eliminar_centro(centro_id):
+    user_id = get_jwt_identity()
+
+    solicitante = Usuario.query.get(user_id)
+    if not solicitante:
+        return jsonify({"message": "No autenticado"}), 401
+
+    if solicitante.rol != "superAdmin":
+        return jsonify({"message": "No tienes permisos para eliminar un centro"}), 403
+
+    centro = Centro.query.get(centro_id)
+    if not centro:
+        return jsonify({"message": "Centro no encontrado"}), 404
+
+    try:
+        # Eliminar asignaciones de usuarios al centro
+        CentroUsuario.query.filter_by(centro_id=centro_id).delete()
+
+        # Eliminar pacientes (sus árboles y nodos se borran en cascada)
+        for paciente in list(centro.pacientes):
+            db.session.delete(paciente)
+
+        db.session.delete(centro)
+        db.session.commit()
+        return jsonify({"message": "Centro eliminado correctamente"}), 200
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error al eliminar centro: {e}")
+        return jsonify({"message": "Error interno al eliminar el centro"}), 500

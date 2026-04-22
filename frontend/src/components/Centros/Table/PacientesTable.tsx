@@ -3,11 +3,13 @@ import type { Paciente } from "../../../types";
 
 interface TableProps {
     pacientes: Paciente[];
+    userRol: string | null;
     onEditar: (p: Paciente) => void;
     onVerNodos: (p: Paciente) => void;
+    onEliminar: (p: Paciente) => void;
 }
 
-export function PacientesTable({ pacientes, onEditar, onVerNodos }: TableProps) {
+export function PacientesTable({ pacientes, userRol, onEditar, onVerNodos, onEliminar }: TableProps) {
     if (pacientes.length === 0) {
         return (
         <div className="table-empty">
@@ -77,6 +79,14 @@ export function PacientesTable({ pacientes, onEditar, onVerNodos }: TableProps) 
                         </svg>
                         Ver nodos
                     </button>
+                    {userRol === "superAdmin" && (
+                        <button className="btn btn--delete" onClick={() => onEliminar(p)} title="Eliminar">
+                        <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+                            <path d="M2 3h9M5 3V2h3v1M3.5 3v7.5h6V3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                        Eliminar
+                        </button>
+                    )}
                     </div>
                 </td>
                 </tr>

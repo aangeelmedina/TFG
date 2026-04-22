@@ -179,6 +179,7 @@ class CentroUsuario(db.Model):
     centro_id  = db.Column(db.Integer, db.ForeignKey('centros.id'),  nullable=False)
     usuario_id = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
     rol        = db.Column(db.String(50), nullable=False)
+    activo     = db.Column(db.Boolean, default=True, nullable=False)
 
     centro  = db.relationship('Centro',  backref=db.backref('centro_usuarios', lazy=True))
     usuario = db.relationship('Usuario', backref=db.backref('centro_usuarios', lazy=True))

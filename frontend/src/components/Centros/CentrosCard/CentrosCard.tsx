@@ -1,5 +1,8 @@
 ﻿import "./CentrosCard.css";
+import { useState, use } from "react";
 import { useNavigate } from "react-router-dom";
+import { CentrosContext } from "../../../context/CentrosContext";
+import { ConfirmModal } from "../../Nodos/modal/ConfirmModal";
 
 interface CentrosCardProps {
     id: number;
@@ -13,8 +16,16 @@ interface CentrosCardProps {
 
 const CentrosCard = (data: CentrosCardProps) => {
     const navigate = useNavigate();
+    const [showConfirm, setShowConfirm] = useState(false);
+    const centrosContext = use(CentrosContext);
+
+    const handleDelete = async () => {
+        await centrosContext?.deleteById(data.id);
+        setShowConfirm(false);
+    };
 
     return (
+        <>
         <div className="cc-card">
             {/* Header */}
             <div className="cc-card__header">
@@ -68,8 +79,27 @@ const CentrosCard = (data: CentrosCardProps) => {
                     </svg>
                     Ver detalles
                 </button>
+                {data.user_rol === "superAdmin" && (
+                    <button className="cc-btn cc-btn--danger" onClick={() => setShowConfirm(true)}>
+                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                            <path d="M2 3h8M5 3V2h2v1M4.5 3v6.5h3V3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                        Eliminar
+                    </button>
+                )}
             </div>
         </div>
+
+        {showConfirm && (
+            <ConfirmModal
+                title="Eliminar centro"
+                message={`¿Estás seguro de que quieres eliminar "${data.nombre}"?`}
+                warn="Esta acción no se puede deshacer."
+                onConfirm={handleDelete}
+                onCancel={() => setShowConfirm(false)}
+            />
+        )}
+        </>
     );
 };
 
