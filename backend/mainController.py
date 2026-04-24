@@ -1,7 +1,8 @@
 from flask import Flask
-from clases import db, Nodo, app
+from clases import db, Nodo, app, NodoEjecucion
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
+from datetime import timedelta
 
 
 # 1. CORS primero, antes de todo
@@ -18,6 +19,7 @@ CORS(app, resources={r"/*": {
 
 # 2. JWT
 app.config["JWT_SECRET_KEY"] = "super-secreta-clave-para-mi-tfg!"  # 32 bytes
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=8)
 jwt = JWTManager(app)
 
 # 3. Blueprints al final

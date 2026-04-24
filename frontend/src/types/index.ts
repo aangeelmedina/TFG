@@ -146,3 +146,23 @@ export interface Trabajador {
   rol: string;
   activo: boolean;
 }
+
+// ─── Estadísticas de ejecuciones de nodos ────────────────────────────────────
+
+export interface NodoFinalStats {
+  nodo_id: number;
+  texto: string;
+  veces: number;
+}
+
+export interface ArbolStats {
+  arbol_id: number;
+  titulo: string;
+  total_ejecuciones: number;
+  nodos_finales: NodoFinalStats[];
+}
+
+export interface EstadisticasNodos {
+  total_ejecuciones: number;
+  por_arbol: ArbolStats[];
+}

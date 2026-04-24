@@ -171,6 +171,32 @@ class Paciente(db.Model):
 
 
 # ─────────────────────────────────────────────
+# EJECUCIÓN DE NODO FINAL
+# ─────────────────────────────────────────────
+class NodoEjecucion(db.Model):
+    __tablename__ = 'nodo_ejecuciones'
+
+    id           = db.Column(db.Integer,  primary_key=True)
+    nodo_id      = db.Column(db.Integer,  db.ForeignKey('nodos.id'),             nullable=False)
+    arbol_id     = db.Column(db.Integer,  db.ForeignKey('arboles_decision.id'),  nullable=False)
+    paciente_id  = db.Column(db.Integer,  db.ForeignKey('pacientes.id'),         nullable=False)
+    ejecutado_en = db.Column(db.DateTime, server_default=db.func.now())
+
+    nodo     = db.relationship('Nodo',          backref=db.backref('ejecuciones', lazy=True))
+    arbol    = db.relationship('ArbolDecision', backref=db.backref('ejecuciones', lazy=True))
+    paciente = db.relationship('Paciente',      backref=db.backref('ejecuciones', lazy=True))
+
+    def to_dict(self):
+        return {
+            'id':           self.id,
+            'nodo_id':      self.nodo_id,
+            'arbol_id':     self.arbol_id,
+            'paciente_id':  self.paciente_id,
+            'ejecutado_en': self.ejecutado_en.isoformat() if self.ejecutado_en else None,
+        }
+
+
+# ─────────────────────────────────────────────
 # CENTRO-USUARIO
 # ─────────────────────────────────────────────
 class CentroUsuario(db.Model):

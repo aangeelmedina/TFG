@@ -7,9 +7,10 @@ interface TableProps {
     onEditar: (p: Paciente) => void;
     onVerNodos: (p: Paciente) => void;
     onEliminar: (p: Paciente) => void;
+    onVerResumen: (p: Paciente) => void;
 }
 
-export function PacientesTable({ pacientes, userRol, onEditar, onVerNodos, onEliminar }: TableProps) {
+export function PacientesTable({ pacientes, userRol, onEditar, onVerNodos, onEliminar, onVerResumen }: TableProps) {
     if (pacientes.length === 0) {
         return (
         <div className="table-empty">
@@ -58,6 +59,13 @@ export function PacientesTable({ pacientes, userRol, onEditar, onVerNodos, onEli
                 <td className="mono">{p.contacto || "—"}</td>
                 <td>
                     <div className="action-buttons">
+                    <button className="btn btn--summary" onClick={() => onVerResumen(p)} title="Ver resumen">
+                        <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
+                        <path d="M7 2.5C4.5 2.5 2.3 4.1 1 7c1.3 2.9 3.5 4.5 6 4.5s4.7-1.6 6-4.5C11.7 4.1 9.5 2.5 7 2.5Z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/>
+                        <circle cx="7" cy="7" r="1.8" stroke="currentColor" strokeWidth="1.3"/>
+                        </svg>
+                        Resumen
+                    </button>
                     <button className="btn btn--edit" onClick={() => onEditar(p)} title="Editar">
                         <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
                         <path d="M9.5 1.5L12.5 4.5L5 12H2V9L9.5 1.5Z" stroke="currentColor"

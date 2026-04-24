@@ -8,6 +8,7 @@ import { StatsBar } from "../../components/Centros/StatsBar/StatsBar";
 import { PacientesTable } from "../../components/Centros/Table/PacientesTable";
 import { ModalEditar } from "../../components/Centros/Modal/ModalEditar";
 import { ModalNodos } from "../../components/Centros/Modal/ModalNodos";
+import { ModalResumenPaciente } from "../../components/Centros/Modal/ModalResumenPaciente";
 import { PersonalTable } from "../../components/Centros/Table/PersonalTable";
 import { ModalAnadirUsuario } from "../../components/Centros/Modal/ModalAnadirUsuario";
 import { ConfirmModal } from "../../components/Nodos/modal/ConfirmModal";
@@ -32,6 +33,7 @@ export default function CentroAdminPage() {
   const [filtroEstado, setFiltroEstado] = useState<EstadoPaciente | "">("");
   const [modalEditar,  setModalEditar]  = useState<ModalState>(null);
   const [modalNodos,   setModalNodos]   = useState<Paciente | null>(null);
+  const [modalResumen, setModalResumen] = useState<Paciente | null>(null);
   const [abrirEditar,  setAbrirEditar]  = useState(false);
 
   // ── Personal state ──
@@ -283,6 +285,7 @@ export default function CentroAdminPage() {
                 onEditar={(p) => { setModalEditar(p); setAbrirEditar(true); }}
                 onVerNodos={(p) => setModalNodos(p)}
                 onEliminar={(p) => setPacienteAEliminar(p)}
+                onVerResumen={(p) => setModalResumen(p)}
               />
             )}
           </>
@@ -322,6 +325,10 @@ export default function CentroAdminPage() {
 
       {modalNodos && (
         <ModalNodos paciente={modalNodos} onClose={() => setModalNodos(null)} />
+      )}
+
+      {modalResumen && (
+        <ModalResumenPaciente paciente={modalResumen} onClose={() => setModalResumen(null)} />
       )}
 
       {modalAnadirUser && (

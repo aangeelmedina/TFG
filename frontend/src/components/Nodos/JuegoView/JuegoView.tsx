@@ -5,7 +5,6 @@ import { Spinner } from "../Spinner";
 import { Topbar } from "../Topbar";
 import "../../../pages/Nodos/NodosPage.css";
 
-
 // ══════════════════════════════════════════════════════════
 //  VISTA JUEGO
 // ══════════════════════════════════════════════════════════
@@ -23,6 +22,7 @@ export const JuegoView: React.FC<{
     const [error, setError]     = useState<string | null>(null);
     const [animKey, setAnimKey] = useState(0); // fuerza re-animación al cambiar nodo
     const clickTimer            = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const registradosRef        = useRef<Set<number>>(new Set());
     
     const cargarNodo = useCallback(async (nodo_id?: number) => {
     setLoading(true); setError(null);
@@ -35,6 +35,14 @@ export const JuegoView: React.FC<{
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => { cargarNodo(nodoInicial); }, [paciente.id, arbol.id, nodoInicial]);
+
+    // Registra la ejecución cuando se alcanza un nodo final (una sola vez por nodo por sesión)
+    useEffect(() => {
+        if (!nodo?.es_final) return;
+        if (registradosRef.current.has(nodo.id)) return;
+        registradosRef.current.add(nodo.id);
+        api.ejecuciones.registrar(paciente.id, arbol.id, nodo.id);
+    }, [nodo, paciente.id, arbol.id]);
 
   // Navega al hijo indicado por índice (0 = click simple, 1 = doble click)
     const navegarA = (hijoIdx: 0 | 1) => {

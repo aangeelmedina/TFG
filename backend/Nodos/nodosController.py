@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request
-from clases import db, Paciente, ArbolDecision, Nodo
+from clases import db, Paciente, ArbolDecision, Nodo, NodoEjecucion
 
 nodos_bp = Blueprint("nodos", __name__, url_prefix="/api")
 
@@ -235,3 +235,112 @@ def _get_nodo_o_404(nodo_id: int, arbol_id: int):
     if not nodo or nodo.arbol_id != arbol_id:
         return jsonify({"error": "Nodo no encontrado en este árbol"}), 404
     return nodo
+
+
+# ══════════════════════════════════════════════
+#  REGISTRAR EJECUCIÓN DE NODO FINAL
+#  POST /api/pacientes/:pid/arboles/:aid/nodos/:nid/ejecutar
+# ══════════════════════════════════════════════
+
+@nodos_bp.route(
+    "/pacientes/<int:paciente_id>/arboles/<int:arbol_id>/nodos/<int:nodo_id>/ejecutar",
+    methods=["POST"],
+)
+def registrar_ejecucion(paciente_id: int, arbol_id: int, nodo_id: int):
+    """Registra que un nodo final ha sido alcanzado durante una sesión de juego."""
+    arbol = _get_arbol_o_404(paciente_id, arbol_id)
+    if isinstance(arbol, tuple):
+        return arbol
+
+    nodo = _get_nodo_o_404(nodo_id, arbol_id)
+    if isinstance(nodo, tuple):
+        return nodo
+
+    if not nodo.es_final:
+        return jsonify({"error": "Solo se pueden registrar ejecuciones de nodos finales"}), 400
+
+    ejecucion = NodoEjecucion(
+        nodo_id=nodo_id,
+        arbol_id=arbol_id,
+        paciente_id=paciente_id,
+    )
+    db.session.add(ejecucion)
+    db.session.commit()
+    return jsonify(ejecucion.to_dict()), 201
+
+
+# ══════════════════════════════════════════════
+#  ESTADÍSTICAS DE EJECUCIONES
+#  GET /api/pacientes/:pid/estadisticas/nodos
+# ══════════════════════════════════════════════
+
+@nodos_bp.route("/pacientes/<int:paciente_id>/estadisticas/nodos", methods=["GET"])
+def estadisticas_nodos(paciente_id: int):
+    """
+    Devuelve estadísticas de uso de árboles y nodos finales para un paciente.
+
+    Response 200:
+    {
+        "total_ejecuciones": int,
+        "por_arbol": [
+            {
+                "arbol_id": int,
+                "titulo": str,
+                "total_ejecuciones": int,
+                "nodos_finales": [
+                    {"nodo_id": int, "texto": str, "veces": int},
+                    ...
+                ]
+            },
+            ...
+        ]
+    }
+    """
+    paciente = Paciente.query.get(paciente_id)
+    if not paciente:
+        return jsonify({"error": "Paciente no encontrado"}), 404
+
+    from sqlalchemy import func
+
+    # Agrupar por arbol_id y nodo_id
+    rows = (
+        db.session.query(
+            NodoEjecucion.arbol_id,
+            NodoEjecucion.nodo_id,
+            func.count(NodoEjecucion.id).label("veces"),
+        )
+        .filter(NodoEjecucion.paciente_id == paciente_id)
+        .group_by(NodoEjecucion.arbol_id, NodoEjecucion.nodo_id)
+        .all()
+    )
+
+    # Construir estructura agrupada
+    arboles_map: dict = {}
+    for arbol_id, nodo_id, veces in rows:
+        if arbol_id not in arboles_map:
+            arbol = ArbolDecision.query.get(arbol_id)
+            arboles_map[arbol_id] = {
+                "arbol_id": arbol_id,
+                "titulo": arbol.titulo if arbol else f"Árbol #{arbol_id}",
+                "total_ejecuciones": 0,
+                "nodos_finales": [],
+            }
+        nodo = Nodo.query.get(nodo_id)
+        arboles_map[arbol_id]["nodos_finales"].append({
+            "nodo_id": nodo_id,
+            "texto": nodo.texto if nodo else f"Nodo #{nodo_id}",
+            "veces": veces,
+        })
+        arboles_map[arbol_id]["total_ejecuciones"] += veces
+
+    # Ordenar nodos_finales por veces desc dentro de cada árbol
+    por_arbol = sorted(arboles_map.values(), key=lambda a: a["total_ejecuciones"], reverse=True)
+    for a in por_arbol:
+        a["nodos_finales"].sort(key=lambda n: n["veces"], reverse=True)
+
+    total = sum(a["total_ejecuciones"] for a in por_arbol)
+
+    return jsonify({
+        "total_ejecuciones": total,
+        "por_arbol": por_arbol,
+    }), 200

@@ -80,12 +80,6 @@ const Navbar = () => {
         }
     };
 
-    const roleLabel = user?.role === "superAdmin"
-        ? "Super Admin"
-        : user?.role === "admin"
-        ? "Administrador"
-        : "Tutor";
-
     return (
         <>
             <nav className="navbar" ref={mobileMenuRef}>
@@ -100,14 +94,7 @@ const Navbar = () => {
                 {/* Desktop actions */}
                 <div className="navbar__actions navbar__actions--desktop">
                     {/* User chip */}
-                    {user && (
-                        <div className="navbar__user">
-                            <span className="navbar__user-name">{user?.username}</span>
-                            <span className={`navbar__role navbar__role--${user?.role === "superAdmin" ? "super" : user?.role === "admin" ? "admin" : "tutor"}`}>
-                                {roleLabel}
-                            </span>
-                        </div>
-                    )}
+
 
                     {user?.role === "superAdmin" && (
                         <div className="navbar__actions">
@@ -157,14 +144,6 @@ const Navbar = () => {
                 {/* Menú móvil desplegable */}
                 {mobileMenuOpen && (
                     <div className="navbar__mobile-menu">
-                        {user && (
-                            <div className="navbar__mobile-user">
-                                <span className="navbar__mobile-username">{user.username}</span>
-                                <span className={`navbar__role navbar__role--${user.role === "superAdmin" ? "super" : user.role === "admin" ? "admin" : "tutor"}`}>
-                                    {roleLabel}
-                                </span>
-                            </div>
-                        )}
 
                         {user?.role === "superAdmin" && (
                             <>

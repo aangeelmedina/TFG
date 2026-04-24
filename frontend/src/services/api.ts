@@ -1,4 +1,4 @@
-import type { Arbol, AuthResponse, Centro, CreateCentroDTO, MessageResponse, Nodo, NodoJuego, User } from "../types";
+import type { Arbol, AuthResponse, Centro, CreateCentroDTO, EstadisticasNodos, MessageResponse, Nodo, NodoJuego, User } from "../types";
 
 
 
@@ -217,5 +217,15 @@ export const api = {
             const qs = nodo_id !== undefined ? `?nodo_id=${nodo_id}` : "";
             return apiFetch<NodoJuego>(`${API}/api/pacientes/${pid}/arboles/${aid}/jugar${qs}`);
         },
+    },
+    ejecuciones: {
+        registrar: (pid: number, aid: number, nid: number) =>
+            apiFetch<{ id: number }>(`${API}/api/pacientes/${pid}/arboles/${aid}/nodos/${nid}/ejecutar`, {
+                method: "POST",
+            }),
+    },
+    estadisticas: {
+        get: (pid: number) =>
+            apiFetch<EstadisticasNodos>(`${API}/api/pacientes/${pid}/estadisticas/nodos`),
     },
 }

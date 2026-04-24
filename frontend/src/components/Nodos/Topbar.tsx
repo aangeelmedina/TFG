@@ -7,7 +7,7 @@ interface TopbarProps {
   title: string;
 }
 
-export const Topbar: React.FC<TopbarProps> = ({ onBack, backLabel = "Volver", title }) => (
+export const Topbar: React.FC<TopbarProps> = ({ onBack, backLabel = "Volver" }) => (
   <header className="n-topbar">
     {onBack && (
       <button className="n-topbar__back" onClick={onBack}>
@@ -17,10 +17,5 @@ export const Topbar: React.FC<TopbarProps> = ({ onBack, backLabel = "Volver", ti
         {backLabel}
       </button>
     )}
-    <span className="n-topbar__brand">{title}</span>
-    <div className="n-topbar__right">
-      <span className="n-topbar__user">Admin</span>
-      <span className="n-topbar__rol">Admin</span>
-    </div>
   </header>
 );

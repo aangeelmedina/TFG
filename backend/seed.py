@@ -2,7 +2,7 @@
 seed.py - Se ejecuta UNA VEZ al arrancar el contenedor backend.
 Crea 15 registros por tabla si no existen.
 """
-from clases import app, db, Usuario, Centro, Paciente, ArbolDecision, Nodo, CentroUsuario
+from clases import app, db, Usuario, Centro, Paciente, ArbolDecision, Nodo, CentroUsuario, NodoEjecucion
 from werkzeug.security import generate_password_hash
 from datetime import date
 
