@@ -1,0 +1,278 @@
+/* ─────────────────────────────────────────────
+   TermsModal.css
+───────────────────────────────────────────── */
+
+/* ── Overlay ──────────────────────────────── */
+.tm-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(3px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 1rem;
+    animation: tm-fadeOverlay 200ms ease;
+}
+
+@keyframes tm-fadeOverlay {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+/* ── Modal ────────────────────────────────── */
+.tm-modal {
+    background: var(--surface, #ffffff);
+    border: 1px solid var(--border, #e4e4e4);
+    border-radius: var(--radius-lg, 14px);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    width: 100%;
+    max-width: 560px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    font-family: 'DM Sans', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    animation: tm-slideUp 220ms ease;
+}
+
+@keyframes tm-slideUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Cabecera ─────────────────────────────── */
+.tm-header {
+    padding: 1.75rem 1.75rem 1.25rem;
+    border-bottom: 1px solid var(--border, #e4e4e4);
+    flex-shrink: 0;
+}
+
+.tm-brand {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin-bottom: 0.875rem;
+}
+
+.tm-brand__dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--text-primary, #1a1a1a);
+    flex-shrink: 0;
+}
+
+.tm-brand__name {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--text-primary, #1a1a1a);
+    letter-spacing: 0.01em;
+}
+
+.tm-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text-primary, #1a1a1a);
+    margin: 0 0 0.375rem;
+    line-height: 1.3;
+}
+
+.tm-subtitle {
+    font-size: 0.875rem;
+    color: var(--text-secondary, #6b6b6b);
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* ── Cuerpo con scroll ────────────────────── */
+.tm-body {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+}
+
+.tm-scroll {
+    height: 100%;
+    max-height: 300px;
+    overflow-y: auto;
+    padding: 1.25rem 1.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-2, #d1d1d1) transparent;
+}
+
+.tm-scroll::-webkit-scrollbar {
+    width: 5px;
+}
+
+.tm-scroll::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.tm-scroll::-webkit-scrollbar-thumb {
+    background: var(--border-2, #d1d1d1);
+    border-radius: 99px;
+}
+
+/* ── Secciones ────────────────────────────── */
+.tm-section {
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--border, #e4e4e4);
+}
+
+.tm-section:first-child {
+    padding-top: 0;
+}
+
+.tm-section:last-child {
+    border-bottom: none;
+}
+
+.tm-section h3 {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-primary, #1a1a1a);
+    margin: 0 0 0.5rem;
+}
+
+.tm-section p {
+    font-size: 0.875rem;
+    color: var(--text-secondary, #6b6b6b);
+    line-height: 1.65;
+    margin: 0;
+}
+
+/* ── Enlace términos completos ────────────── */
+.tm-full-link {
+    padding: 1rem 0 0.25rem;
+}
+
+.tm-link-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: none;
+    border: none;
+    color: var(--accent, #2563eb);
+    font-size: 0.8125rem;
+    font-family: inherit;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 0;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    transition: opacity 150ms ease;
+}
+
+.tm-link-btn:hover {
+    opacity: 0.75;
+}
+
+/* ── Pie ──────────────────────────────────── */
+.tm-footer {
+    padding: 1.25rem 1.75rem 1.75rem;
+    border-top: 1px solid var(--border, #e4e4e4);
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1.125rem;
+}
+
+/* ── Checkbox ─────────────────────────────── */
+.tm-checkbox-label {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    cursor: pointer;
+    font-size: 0.875rem;
+    color: var(--text-secondary, #6b6b6b);
+    line-height: 1.5;
+    user-select: none;
+}
+
+.tm-checkbox {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.tm-checkbox-custom {
+    width: 16px;
+    height: 16px;
+    border: 1.5px solid var(--border-2, #d1d1d1);
+    border-radius: 4px;
+    background: var(--surface, #fff);
+    flex-shrink: 0;
+    margin-top: 1px;
+    position: relative;
+    transition: border-color 150ms ease, background 150ms ease;
+}
+
+.tm-checkbox:checked + .tm-checkbox-custom {
+    background: var(--accent, #2563eb);
+    border-color: var(--accent, #2563eb);
+}
+
+.tm-checkbox:checked + .tm-checkbox-custom::after {
+    content: '';
+    position: absolute;
+    left: 3px;
+    top: 1px;
+    width: 8px;
+    height: 5px;
+    border-left: 2px solid #fff;
+    border-bottom: 2px solid #fff;
+    transform: rotate(-45deg);
+}
+
+/* ── Botones ──────────────────────────────── */
+.tm-actions {
+    display: flex;
+    gap: 0.625rem;
+    justify-content: flex-end;
+}
+
+.tm-btn-decline {
+    padding: 0.5625rem 1.125rem;
+    background: none;
+    border: 1px solid var(--border-2, #d1d1d1);
+    border-radius: var(--radius-sm, 6px);
+    font-family: inherit;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-secondary, #6b6b6b);
+    cursor: pointer;
+    transition: border-color 150ms ease, color 150ms ease;
+}
+
+.tm-btn-decline:hover {
+    border-color: var(--text-secondary, #6b6b6b);
+    color: var(--text-primary, #1a1a1a);
+}
+
+.tm-btn-accept {
+    padding: 0.5625rem 1.25rem;
+    background: var(--text-primary, #1a1a1a);
+    border: 1px solid var(--text-primary, #1a1a1a);
+    border-radius: var(--radius-sm, 6px);
+    font-family: inherit;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #fff;
+    cursor: pointer;
+    transition: opacity 150ms ease;
+}
+
+.tm-btn-accept:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+.tm-btn-accept:not(:disabled):hover {
+    opacity: 0.85;
+}

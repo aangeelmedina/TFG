@@ -6,13 +6,14 @@ import Login from "./pages/Auth/Login"
 import SetPasswordPage from "./pages/Auth/SetPasswordPage"
 import Navbar from "./components/Navbar/Navbar"
 import CentroAdminPage from "./pages/centros/Centroadminpage"
+import TerminosPage from "./pages/terminos/TerminosPage"
 
 
 // ... imports ...
 
 const App = () => {
   const location = useLocation();
-  const hideNavbarRoutes = ['/login', '/set-password'];
+  const hideNavbarRoutes = ['/login', '/set-password', '/terminos'];
   const showNavbar = !hideNavbarRoutes.includes(location.pathname);
 
   return (
@@ -39,6 +40,7 @@ const App = () => {
             </ProtectedRoute>
           } />
         <Route path="*" element={<Navigate to="/home" />} />
+        <Route path="/terminos" element={<TerminosPage />} />
       </Routes>
     </div>
   )

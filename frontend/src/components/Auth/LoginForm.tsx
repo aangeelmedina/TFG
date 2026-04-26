@@ -19,20 +19,19 @@ const LoginForm = () => {
         }
 
         try {
-            // Llamar a login y obtener la respuesta directamente
             const response = await login(username, password);
             
             if (!response) {
                 return { error: "Credenciales incorrectas" };
             }
 
-            // Ahora tenemos acceso a setPassword en la respuesta
             if (response.user.setPassword) {
                 navigate("/set-password");
                 return { error: null };
             }
 
-            navigate("/home");
+            // La redirección a /home y el modal de términos los gestiona Login.tsx
+            // al detectar el cambio en AuthContext (user pasa a estar definido)
             return { error: null };
         } catch (err) {
             console.log(err)
