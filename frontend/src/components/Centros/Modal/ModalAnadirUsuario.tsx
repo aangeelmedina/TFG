@@ -15,13 +15,11 @@ interface Props {
   onGuardado: () => void;
 }
 
-const ROLES_CENTRO = ["admin", "medico", "enfermero", "auxiliar"];
+const ROLES_CENTRO = ["admin", "tutor"];
 
 const ROL_STYLES: Record<string, { bg: string; color: string }> = {
-  medico:    { bg: "#dbeafe", color: "#1e40af" },
-  enfermero: { bg: "#d1fae5", color: "#065f46" },
-  auxiliar:  { bg: "#fef3c7", color: "#92400e" },
-  admin:     { bg: "#f3e8ff", color: "#6b21a8" },
+  admin:  { bg: "#f3e8ff", color: "#6b21a8" },
+  tutor:  { bg: "#dbeafe", color: "#1e40af" },
 };
 
 function initials(name: string) {

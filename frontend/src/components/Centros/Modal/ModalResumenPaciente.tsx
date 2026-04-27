@@ -268,8 +268,8 @@ export function ModalResumenPaciente({ paciente, onClose }: Props) {
                         <th>Título</th>
                         <th>Nodos</th>
                         <th>Ejecuciones</th>
-                        <th>Creado</th>
-                        <th>Uso relativo</th>
+                        <th className="resumen__th--fecha">Creado</th>
+                        <th className="resumen__th--bar">Uso relativo</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -333,9 +333,9 @@ export function ModalResumenPaciente({ paciente, onClose }: Props) {
                         <tr>
                           <th>#</th>
                           <th>Nodo final</th>
-                          <th>Árbol</th>
+                          <th className="resumen__th--fecha">Árbol</th>
                           <th>Ejecuciones</th>
-                          <th>Frecuencia</th>
+                          <th className="resumen__th--bar">Frecuencia</th>
                         </tr>
                       </thead>
                       <tbody>

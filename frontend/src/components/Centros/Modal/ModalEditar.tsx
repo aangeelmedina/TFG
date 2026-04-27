@@ -38,10 +38,42 @@ export function ModalEditar({ paciente, centroId, onClose, onGuardado }: ModalEd
     setForm((prev) => ({ ...prev, [name]: name === "edad" ? Number(value) : value }));
   };
 
+  // ─── Helpers de validación ──────────────────────────────────────────────
+  const soloTeclaTelefono = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (['Backspace','Delete','Tab','Escape','Enter','ArrowLeft','ArrowRight','Home','End'].includes(e.key)) return;
+    if (/^[\d+\s\-()]$/.test(e.key)) return;
+    e.preventDefault();
+  };
+
+  const soloTeclaTexto = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (['Backspace','Delete','Tab','Escape','Enter','ArrowLeft','ArrowRight','Home','End'].includes(e.key)) return;
+    if (/^[a-zA-ZÀ-ÿÑñ\s']$/.test(e.key)) return;
+    e.preventDefault();
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     setError("");
+
+    // Validación DNI: 8 dígitos + 1 letra
+    if (!/^\d{8}[A-Za-z]$/.test(form.dni)) {
+      setError("El DNI debe tener 8 dígitos seguidos de 1 letra (ej: 12345678A)");
+      return;
+    }
+
+    // Validación teléfono/contacto (si se rellena)
+    if (form.contacto && !/^[+\d\s\-()]{7,15}$/.test(form.contacto)) {
+      setError("El contacto debe ser un número de teléfono válido (ej: +34 612 345 678)");
+      return;
+    }
+
+    // Validación edad
+    if (form.edad < 0 || form.edad > 130) {
+      setError("La edad debe estar entre 0 y 130 años");
+      return;
+    }
+
+    setLoading(true);
     const url    = esNuevo
       ? `${API_URL}/centros/${centroId}/pacientes`
       : `${API_URL}/pacientes/${paciente!.id}`;
@@ -84,17 +116,21 @@ export function ModalEditar({ paciente, centroId, onClose, onGuardado }: ModalEd
             <div className="modal__field">
               <label className="modal__label">Nombre</label>
               <input className="modal__input" name="nombre" value={form.nombre}
-                onChange={handleChange} required placeholder="Nombre" />
+                onChange={handleChange} onKeyDown={soloTeclaTexto} required
+                placeholder="Nombre" maxLength={60} />
             </div>
             <div className="modal__field">
               <label className="modal__label">Apellidos</label>
               <input className="modal__input" name="apellidos" value={form.apellidos}
-                onChange={handleChange} required placeholder="Apellido Apellido" />
+                onChange={handleChange} onKeyDown={soloTeclaTexto} required
+                placeholder="Apellido Apellido" maxLength={80} />
             </div>
             <div className="modal__field">
               <label className="modal__label">DNI</label>
               <input className="modal__input modal__input--mono" name="dni" value={form.dni}
-                onChange={handleChange} required placeholder="12345678A" />
+                onChange={handleChange} required placeholder="12345678A"
+                maxLength={9} pattern="^\d{8}[A-Za-z]$"
+                title="8 dígitos seguidos de 1 letra (ej: 12345678A)" />
             </div>
             <div className="modal__field">
               <label className="modal__label">Edad</label>
@@ -104,7 +140,10 @@ export function ModalEditar({ paciente, centroId, onClose, onGuardado }: ModalEd
             <div className="modal__field">
               <label className="modal__label">Contacto</label>
               <input className="modal__input modal__input--mono" name="contacto"
-                value={form.contacto ?? ""} onChange={handleChange} placeholder="+34 6XX XXX XXX" />
+                type="tel" value={form.contacto ?? ""} onChange={handleChange}
+                onKeyDown={soloTeclaTelefono} placeholder="+34 6XX XXX XXX"
+                maxLength={15} pattern="^[+\d\s\-()]{7,15}$"
+                title="Número de teléfono válido (ej: +34 612 345 678)" />
             </div>
             <div className="modal__field">
               <label className="modal__label">Fecha ingreso</label>

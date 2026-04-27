@@ -90,7 +90,7 @@ export const FORM_VACIO: PacienteForm = {
 export interface Nodo {
     id: number;
     texto: string;
-    img: string | null;
+
     es_final: boolean;
     padre_id: number | null;
     arbol_id: number;

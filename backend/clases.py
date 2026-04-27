@@ -42,7 +42,6 @@ class Nodo(db.Model):
 
     id       = db.Column(db.Integer, primary_key=True)
     texto    = db.Column(db.String(200), nullable=False)
-    img      = db.Column(db.String(200), nullable=True)
     es_final = db.Column(db.Boolean, default=False)
 
     padre_id = db.Column(db.Integer, db.ForeignKey('nodos.id'), nullable=True)
@@ -65,7 +64,6 @@ class Nodo(db.Model):
         data = {
             'id':       self.id,
             'texto':    self.texto,
-            'img':      self.img,
             'es_final': self.es_final,
             'padre_id': self.padre_id,
             'arbol_id': self.arbol_id,

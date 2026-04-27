@@ -123,7 +123,8 @@
 .resumen__table-wrap {
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  overflow: hidden;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .resumen__table {
@@ -295,7 +296,31 @@
     grid-template-columns: 1fr 1fr;
   }
 
+  .resumen__th--bar,
   .resumen__bar-cell {
     display: none;
+  }
+
+  /* Ocultar columnas menos importantes: Creado (tabla árboles) y Árbol (tabla nodos) */
+  .resumen__th--fecha,
+  .resumen__fecha {
+    display: none;
+  }
+
+  .resumen__table {
+    font-size: 12px;
+  }
+
+  .resumen__table th,
+  .resumen__table td {
+    padding: 7px 8px;
+  }
+
+  .resumen__arbol-titulo {
+    max-width: 110px;
+  }
+
+  .resumen__body {
+    padding: 1rem 0.875rem 1.25rem;
   }
 }

@@ -15,6 +15,7 @@ const Navbar = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isUserModalOpen, setIsUserModalOpen] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [formError, setFormError] = useState("");
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const mobileMenuRef = useRef<HTMLDivElement>(null);
 
@@ -40,6 +41,12 @@ const Navbar = () => {
     });
     const [userFormData, setUserFormData] = useState({ username: '' });
 
+    const soloTeclaTelefono = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (['Backspace','Delete','Tab','Escape','Enter','ArrowLeft','ArrowRight','Home','End'].includes(e.key)) return;
+        if (/^[\d+\s\-()]$/.test(e.key)) return;
+        e.preventDefault();
+    };
+
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
@@ -52,14 +59,22 @@ const Navbar = () => {
         e.preventDefault();
         if (!createCentros) return;
 
+        setFormError("");
+
+        if (!/^[+\d\s\-()]{7,15}$/.test(formData.telefono)) {
+            setFormError("El teléfono solo puede contener dígitos, +, espacios o guiones (ej: +34 612 345 678)");
+            return;
+        }
+
         setLoading(true);
         try {
             await createCentros({ ...formData, user: user!.id });
             setIsModalOpen(false);
             setFormData({ nombre: '', direccion: '', telefono: '', email: '' });
+            setFormError("");
         } catch (error) {
             const message = (error as Error).message || "Error al conectar con el servidor";
-            alert(message);
+            setFormError(message);
         } finally {
             setLoading(false);
         }
@@ -198,7 +213,7 @@ const Navbar = () => {
                             </div>
                             <button
                                 className="nb-modal__close"
-                                onClick={() => setIsModalOpen(false)}
+                                onClick={() => { setIsModalOpen(false); setFormError(""); }}
                                 disabled={loading}
                             >
                                 ✕
@@ -235,11 +250,13 @@ const Navbar = () => {
                                     <label className="nb-label">Teléfono</label>
                                     <input
                                         className="nb-input"
-                                        type="text"
+                                        type="tel"
                                         name="telefono"
-                                        placeholder="+34 6XX XXX XXX"
+                                        placeholder="+34 612 345 678"
                                         value={formData.telefono}
                                         onChange={handleChange}
+                                        onKeyDown={soloTeclaTelefono}
+                                        maxLength={15}
                                         required
                                     />
                                 </div>
@@ -257,11 +274,15 @@ const Navbar = () => {
                                 </div>
                             </div>
 
+                            {formError && (
+                                <p style={{ color: "#dc2626", fontSize: "0.8125rem", marginTop: "0.5rem", marginBottom: 0 }}>{formError}</p>
+                            )}
+
                             <div className="nb-modal__footer">
                                 <button
                                     type="button"
                                     className="nb-btn nb-btn--cancel"
-                                    onClick={() => setIsModalOpen(false)}
+                                    onClick={() => { setIsModalOpen(false); setFormError(""); }}
                                     disabled={loading}
                                 >
                                     Cancelar
