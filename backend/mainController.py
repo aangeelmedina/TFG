@@ -18,7 +18,7 @@ CORS(app, resources={r"/*": {
 }}, supports_credentials=True)
 
 # 2. JWT
-app.config["JWT_SECRET_KEY"] = "super-secreta-clave-para-mi-tfg!"  # 32 bytes
+app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY", "super-secreta-clave-para-mi-tfg!")
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=8)
 jwt = JWTManager(app)
 
@@ -48,4 +48,4 @@ if __name__ == '__main__':
             
         print("¡Base de datos lista!")
     
-    app.run(host="0.0.0.0", debug=True)
+    app.run(host="0.0.0.0", port=int(os.getenv("PORT", 5000)), debug=os.getenv("FLASK_DEBUG", "false").lower() == "true")

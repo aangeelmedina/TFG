@@ -1,27 +1,36 @@
 #!/bin/sh
 set -e
 
-echo "⏳ Esperando a que MySQL esté listo..."
+# En Railway la BD es externa; RAILWAY_ENVIRONMENT se inyecta automáticamente.
+# En local (Docker Compose) hay que esperar al contenedor mysql.
+if [ -z "$RAILWAY_ENVIRONMENT" ]; then
+  echo "⏳ Esperando a que MySQL esté listo..."
 
-# Espera activa hasta que MySQL acepte conexiones
-until python -c "
-import pymysql, os, time
+  until python -c "
+import pymysql, os
+from urllib.parse import urlparse
+raw = os.environ.get('DATABASE_URL', '').replace('mysql+pymysql://', 'mysql://')
+u = urlparse(raw)
 try:
     pymysql.connect(
-        host='mysql',
-        user='root',
-        password='root_secret',
-        database='tfg_db',
+        host=u.hostname,
+        port=u.port or 3306,
+        user=u.username,
+        password=u.password,
+        database=u.path.lstrip('/'),
         connect_timeout=3
     )
-except Exception as e:
+except Exception:
     raise SystemExit(1)
 " 2>/dev/null; do
-  echo "   MySQL no disponible aún, reintentando en 2s..."
-  sleep 2
-done
+    echo "   MySQL no disponible aún, reintentando en 2s..."
+    sleep 2
+  done
 
-echo "✅ MySQL disponible"
+  echo "✅ MySQL disponible"
+else
+  echo "☁️  Railway detectado — omitiendo espera de MySQL"
+fi
 
 echo "🌱 Ejecutando seed..."
 python seed.py
