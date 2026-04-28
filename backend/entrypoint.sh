@@ -35,5 +35,9 @@ fi
 echo "🌱 Ejecutando seed..."
 python seed.py
 
-echo "🚀 Arrancando Flask..."
-exec python mainController.py
+echo "🚀 Arrancando Gunicorn..."
+exec gunicorn mainController:app \
+  --bind 0.0.0.0:${PORT:-5000} \
+  --workers ${GUNICORN_WORKERS:-2} \
+  --timeout 120 \
+  --access-logfile -

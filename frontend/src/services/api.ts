@@ -2,8 +2,10 @@ import type { Arbol, AuthResponse, Centro, CreateCentroDTO, EstadisticasNodos, M
 
 
 
-// Backend API base URL - asegúrate de que el backend corre en http://localhost:5000
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+// Si VITE_API_URL es "" (Docker local con nginx), las llamadas son relativas y
+// nginx las proxia al backend. Si no está definida, fallback a localhost para
+// desarrollo sin Docker.
+const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:5000";
 // const BASE_URL = import.meta.env.VITE_BASE_URL
 
 /**
