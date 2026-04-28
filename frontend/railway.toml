@@ -1,6 +1,10 @@
 [build]
 builder = "dockerfile"
 
+[build.args]
+NGINX_CONF = "nginx.railway.conf"
+VITE_API_URL = ""
+
 [deploy]
 healthcheckPath = "/"
 healthcheckTimeout = 60
