@@ -2,7 +2,6 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
-# Dependencias del sistema necesarias para pymysql/cryptography
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     && rm -rf /var/lib/apt/lists/*
@@ -15,6 +14,7 @@ COPY . .
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-EXPOSE 5000
+# No fijes un puerto — Railway inyecta $PORT automáticamente
+EXPOSE ${PORT:-8080}
 
 ENTRYPOINT ["/entrypoint.sh"]
