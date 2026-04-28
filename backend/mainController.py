@@ -33,9 +33,11 @@ app.register_blueprint(centros_bp)
 app.register_blueprint(pacientes_bp)
 app.register_blueprint(nodos_bp)
 
-# db.create_all() se ejecuta siempre: tanto con Gunicorn como con python directo
-with app.app_context():
-    db.create_all()
+# Health check para Railway
+from flask import jsonify as _jsonify
+@app.route('/health')
+def health():
+    return _jsonify({'status': 'ok'}), 200
 
 # --- INICIALIZACIÓN ---
 if __name__ == '__main__':
