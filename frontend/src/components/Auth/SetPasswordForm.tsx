@@ -31,7 +31,8 @@ const SetPasswordForm = () => {
             await authAPI.setPassword(newPassword);
             // Actualizar el usuario en el contexto para reflejar que cambió la contraseña
             await checkAuth();
-            navigate("/home");
+            // Redirigir a login para que muestre el modal de términos y condiciones
+            navigate("/login");
             return { error: null };
         } catch (err) {
             const message = err instanceof Error ? err.message : "Error al cambiar la contraseña";

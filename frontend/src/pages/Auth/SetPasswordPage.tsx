@@ -14,9 +14,9 @@ const SetPasswordPage = () => {
             if (!user) {
                 navigate("/login");
             }
-            // Si está logueado pero ya cambió la contraseña, ir a home
+            // Si está logueado pero ya cambió la contraseña, ir a login para ver los términos
             else if (!user.setPassword) {
-                navigate("/home");
+                navigate("/login");
             }
         }
     }, [user, loading, navigate]);

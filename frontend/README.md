@@ -184,3 +184,25 @@ docker-compose up --build
 
 La aplicación se servirá mediante **Nginx** en el puerto 80.
 
+---
+
+## Capturas de pantalla
+
+Galería de las vistas principales de la aplicación.
+
+### Página principal
+
+![Página principal](public/pagina_principal.png)
+
+### Detalle del centro — Pacientes
+
+![Detalle centro - Pacientes](public/detalle_centro_paciente.png)
+
+### Detalle del centro — Personal
+
+![Detalle centro - Personal](public/detalle_centro_personal.png)
+
+### Editor de nodos
+
+![Editor de nodos](public/editor_nodos.png)
+

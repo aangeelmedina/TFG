@@ -211,6 +211,7 @@ class TestGetUsuariosCentro:
         asignacion.usuario_id = usuario_normal.id
         asignacion.usuario.username = "juan"
         asignacion.rol = "empleado"
+        asignacion.activo = True
 
         with patch("Centros.centrosController.CentroUsuario") as MockCU:
             MockCU.query.filter_by.return_value.all.return_value = [asignacion]

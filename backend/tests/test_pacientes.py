@@ -16,15 +16,24 @@ def mock_clases_module():
 @pytest.fixture
 def app(mock_clases_module):
     from flask import Flask
+    from flask_jwt_extended import JWTManager
 
     app = Flask(__name__)
     app.config["TESTING"] = True
     app.config["JWT_SECRET_KEY"] = "test-secret"
+    JWTManager(app)
 
     from Pacientes.pacientesController import pacientes_bp
     app.register_blueprint(pacientes_bp)
 
     return app
+
+
+@pytest.fixture
+def token(app):
+    from flask_jwt_extended import create_access_token
+    with app.app_context():
+        return create_access_token(identity="1")
 
 
 @pytest.fixture
@@ -262,45 +271,45 @@ class TestEditarPaciente:
 # ── DELETE /pacientes/<id> ────────────────────────────────────────────────────
 
 class TestEliminarPaciente:
-    def test_eliminar_exitoso(self, client, paciente_mock):
+    def test_eliminar_exitoso(self, client, paciente_mock, token):
         with patch("Pacientes.pacientesController._tiene_acceso_centro", return_value=True), \
              patch("Pacientes.pacientesController.Paciente") as MockPaciente, \
              patch("Pacientes.pacientesController.db") as mock_db:
             MockPaciente.query.get_or_404.return_value = paciente_mock
 
-            res = client.delete("/pacientes/1?user_id=1")
+            res = client.delete("/pacientes/1", headers={"Authorization": f"Bearer {token}"})
 
         assert res.status_code == 200
         assert res.get_json()["message"] == "Paciente eliminado"
         mock_db.session.delete.assert_called_once_with(paciente_mock)
         mock_db.session.commit.assert_called_once()
 
-    def test_eliminar_sin_acceso(self, client, paciente_mock):
+    def test_eliminar_sin_acceso(self, client, paciente_mock, token):
         with patch("Pacientes.pacientesController._tiene_acceso_centro", return_value=False), \
              patch("Pacientes.pacientesController.Paciente") as MockPaciente:
             MockPaciente.query.get_or_404.return_value = paciente_mock
 
-            res = client.delete("/pacientes/1?user_id=1")
+            res = client.delete("/pacientes/1", headers={"Authorization": f"Bearer {token}"})
 
         assert res.status_code == 403
 
-    def test_eliminar_paciente_no_encontrado(self, client):
+    def test_eliminar_paciente_no_encontrado(self, client, token):
         with patch("Pacientes.pacientesController.Paciente") as MockPaciente:
             from werkzeug.exceptions import NotFound
             MockPaciente.query.get_or_404.side_effect = NotFound()
 
-            res = client.delete("/pacientes/999?user_id=1")
+            res = client.delete("/pacientes/999", headers={"Authorization": f"Bearer {token}"})
 
         assert res.status_code == 404
 
-    def test_eliminar_error_bd(self, client, paciente_mock):
+    def test_eliminar_error_bd(self, client, paciente_mock, token):
         with patch("Pacientes.pacientesController._tiene_acceso_centro", return_value=True), \
              patch("Pacientes.pacientesController.Paciente") as MockPaciente, \
              patch("Pacientes.pacientesController.db") as mock_db:
             MockPaciente.query.get_or_404.return_value = paciente_mock
             mock_db.session.commit.side_effect = Exception("DB error")
 
-            res = client.delete("/pacientes/1?user_id=1")
+            res = client.delete("/pacientes/1", headers={"Authorization": f"Bearer {token}"})
 
         assert res.status_code == 500
         mock_db.session.rollback.assert_called_once()
