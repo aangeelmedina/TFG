@@ -3,6 +3,9 @@ set -e
 
 echo "⏳ Esperando a que la base de datos esté lista..."
 
+MAX_RETRIES=30
+RETRIES=0
+
 # Espera activa usando DATABASE_URL (funciona en Docker local y en Railway)
 until python -c "
 import pymysql, os
@@ -12,8 +15,9 @@ db_url = os.getenv('DATABASE_URL', '')
 if not db_url:
     raise SystemExit(0)
 
-# Soporta mysql+pymysql://user:pass@host:port/db
-url = urlparse(db_url)
+# Elimina el prefijo del dialecto (mysql+pymysql:// -> mysql://)
+db_url_clean = db_url.replace('mysql+pymysql://', 'mysql://', 1)
+url = urlparse(db_url_clean)
 host     = url.hostname
 port     = int(url.port or 3306)
 user     = url.username
@@ -26,7 +30,12 @@ try:
 except Exception:
     raise SystemExit(1)
 " 2>/dev/null; do
-  echo "   Base de datos no disponible aún, reintentando en 2s..."
+  RETRIES=$((RETRIES + 1))
+  if [ "$RETRIES" -ge "$MAX_RETRIES" ]; then
+    echo "⚠️  Base de datos no disponible tras ${MAX_RETRIES} intentos — arrancando igualmente"
+    break
+  fi
+  echo "   Base de datos no disponible aún, reintentando en 2s... (${RETRIES}/${MAX_RETRIES})"
   sleep 2
 done
 
