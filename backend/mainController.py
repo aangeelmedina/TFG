@@ -18,7 +18,7 @@ CORS(app, resources={r"/*": {
 }}, supports_credentials=True)
 
 # 2. JWT
-app.config["JWT_SECRET_KEY"] = "super-secreta-clave-para-mi-tfg!"  # 32 bytes
+app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY", "super-secreta-clave-para-mi-tfg!")
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=8)
 jwt = JWTManager(app)
 
@@ -32,6 +32,15 @@ app.register_blueprint(usuarios_bp, url_prefix='/auth')
 app.register_blueprint(centros_bp)
 app.register_blueprint(pacientes_bp)
 app.register_blueprint(nodos_bp)
+
+
+# --- HEALTH CHECK (Railway / load balancers) ---
+from flask import jsonify
+
+@app.route('/health')
+def health():
+    return jsonify({"status": "ok"}), 200
+
 
 # --- INICIALIZACIÓN ---
 if __name__ == '__main__':

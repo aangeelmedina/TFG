@@ -1,0 +1,4 @@
+# Railway Project Root Configuration
+# Este archivo es un marcador para Railway.
+# Cada servicio tiene su propio railway.toml en backend/ y frontend/.
+# Ver RAILWAY_DEPLOY_GUIDE.md para instrucciones completas.
